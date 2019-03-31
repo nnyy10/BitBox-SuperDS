@@ -1,10 +1,10 @@
-package uniemlb.bitbox;
+package unimelb.bitbox;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
-import main.java.unimelb.bitbox.util.Configuration;
+import unimelb.bitbox.util.Configuration;
 
 public class Peer 
 {
