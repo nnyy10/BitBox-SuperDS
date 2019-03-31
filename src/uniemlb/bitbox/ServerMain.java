@@ -1,13 +1,13 @@
-package unimelb.bitbox;
+package uniemlb.bitbox;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
-import unimelb.bitbox.util.Configuration;
-import unimelb.bitbox.util.FileSystemManager;
-import unimelb.bitbox.util.FileSystemObserver;
-import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
+import main.java.unimelb.bitbox.util.Configuration;
+import main.java.unimelb.bitbox.util.FileSystemManager;
+import main.java.unimelb.bitbox.util.FileSystemObserver;
+import main.java.unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 public class ServerMain implements FileSystemObserver {
 	private static Logger log = Logger.getLogger(ServerMain.class.getName());
