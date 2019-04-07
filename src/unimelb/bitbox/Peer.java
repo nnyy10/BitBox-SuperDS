@@ -27,12 +27,16 @@ public class Peer
         
 //        Configuration.getConfiguration();
 //        new ServerMain();
+        
+        Server s = new Server(80);
+        Thread trs = new Thread(s);
+        trs.start();
+        
         Client c0 = new Client("10.12.189.122", 80);
-        Thread tr0;
-        tr0 = new Thread(c0);
+        Thread tr0 = new Thread(c0);
         tr0.start();
         
-        new Server(80);
+
 
     }
     
