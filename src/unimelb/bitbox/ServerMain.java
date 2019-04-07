@@ -10,7 +10,7 @@ import unimelb.bitbox.util.FileSystemObserver;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 public class ServerMain implements FileSystemObserver {
-	private static Logger log = Logger.getLogger(ServerMain.class.getName());
+	private static Logger log = Logger.getLogger(ServerMain.class.getName()); 
 	protected FileSystemManager fileSystemManager;
 	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {

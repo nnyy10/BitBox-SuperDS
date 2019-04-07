@@ -26,7 +26,7 @@ public class Configuration {
     private static final String CONFIGURATION_FILE = "configuration.properties";
 
     private static final Properties properties;
-
+    
     // use static initializer to read the configuration file when the class is loaded
     static {
         properties = new Properties();
