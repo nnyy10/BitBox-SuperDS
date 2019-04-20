@@ -1,88 +1,45 @@
 package unimelb.bitbox;
 
-//A Java program for a Server 
-import java.net.*; 
-import java.io.*;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 
 
-public class Server implements Runnable
-{ 
-    //initialize socket and input stream 
-    private Socket          socket   = null; 
-    private ServerSocket    server   = null; 
-    private DataInputStream in       =  null; 
-  
-    // constructor with port 
-    public Server(int port) 
-    { 
-        // starts server and waits for a connection 
-        try
-        { 
-            server = new ServerSocket(port); 
-            System.out.println("Server: Server started"); 
-  
-            System.out.println("Server: Waiting for a client ..."); 
-  
-            socket = server.accept(); 
-            System.out.println("Server: Client accepted"); 
-  
-            // takes input from the client socket 
-            in = new DataInputStream( 
-                new BufferedInputStream(socket.getInputStream())); 
-  
-            
+public class Server implements Runnable{
+	
+	private Socket clientSocket = null;
+	private DataInputStream input = null;
+	private DataOutputStream output = null;
+	
+    protected String serverText   = null;
 
-        } 
-        catch(IOException i) 
-        { 
-            System.out.println(i); 
-        } 
-    } 
-    
-    public void run() {
-    	String line = ""; 
-    	  
-        // reads message from client until "Over" is sent 
-        while (!line.equals("Over")) 
-        { 
-            try
-            { 
-                line = in.readUTF();
-                handleIncomingMessage(line);
-                //System.out.println(line); 
-
-            } 
-            catch(IOException i) 
-            { 
-                System.out.println(i); 
-            } 
-        } 
-        System.out.println("Closing connection"); 
+    public Server(Socket clientSocket, String serverText) {
+        this.clientSocket = clientSocket;
+        this.serverText   = serverText;
         
-        // close connection 
         try {
-			socket.close();
-			in.close(); 
+			input  = new DataInputStream(this.clientSocket.getInputStream());
+			output = new DataOutputStream(this.clientSocket.getOutputStream());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
+		}
     }
-    
-    private void handleIncomingMessage(String message){
-    	switch(message) {
-    	   case "mkdir" :
-    	      System.out.println("making directory");
-    	      break; // optional
-    	   
-    	   case "deldir":
-    		   System.out.println("deleting directory");
-    	      break; // optional
-    	   
-    	   // You can have any number of case statements.
-    	   default : // Optional
-    	      System.out.println("message invalid");
-    	}
+
+    public void run() {
+        try {
+
+            long time = System.currentTimeMillis();
+            output.write(("HTTP/1.1 200 OK\n\nWorkerRunnable: " + this.serverText + " - " + time + "").getBytes());
+            output.close();
+            input.close();
+            System.out.println("Request processed: " + time);
+        } catch (IOException e) {
+            //report exception somewhere.
+            e.printStackTrace();
+        }
     }
-    
 }
