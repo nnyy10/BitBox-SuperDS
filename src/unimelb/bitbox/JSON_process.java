@@ -54,25 +54,26 @@ public class JSON_process {
         System.out.println(obj);
     }
 
-    private static void fileDescriptor(String md5, long timestamp, long size, String pathName, JSONObject obj) {
+    private static void fileDescriptor(String md5, String timestamp, long size, String pathName, JSONObject obj) {
         obj.put("pathName", pathName);
         JSONObject obj2 = new JSONObject();
         obj2.put("md5", md5);
         obj2.put("lastModified", timestamp);
         obj2.put("fileSize", size);
         obj.put("fileDescriptor", obj2);
-        System.out.println(obj);
+        //System.out.println(obj);
     }
 
-    public static void FILE_CREATE_REQUEST(String md5, long timestamp, long size, String path){
+    public static JSONObject FILE_CREATE_REQUEST(String md5, String timestamp, long size, String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_CREATE_REQUEST");
         // there should be a blocksize ????
         fileDescriptor(md5, timestamp, size, path, obj);
-        System.out.println(obj);
+        //System.out.println(obj);
+        return obj;
     }
 
-    public static void FILE_CREATE_RESPONSE(String md5, long timestamp, long size, String path, problems prob){
+    public static JSONObject FILE_CREATE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_CREATE_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -90,10 +91,11 @@ public class JSON_process {
         }
         // is this solution a good way to meet the requirements
         // what about "else"
-        System.out.println(obj);
+        //System.out.println(obj);
+        return obj;
     }
 
-    public static void FILE_BYTES_REQUEST(String md5, long timestamp, long size, String pathName,
+    public static void FILE_BYTES_REQUEST(String md5, String timestamp, long size, String pathName,
                                           int position, int length){
         //needs to call the File System Manager to read the requested bytes and package them into a response message
         JSONObject obj = new JSONObject();
@@ -104,7 +106,7 @@ public class JSON_process {
         System.out.println(obj);
     }
 
-    public static void FILE_BYTES_RESPONSE(String md5, long timestamp, long size, String path,
+    public static void FILE_BYTES_RESPONSE(String md5, String timestamp, long size, String path,
                                            int position, int length, String content, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_BYTES_RESPONSE");
@@ -125,7 +127,7 @@ public class JSON_process {
         System.out.println(obj);
     }
 
-    public static void FILE_DELETE_REQUEST(String md5, long timestamp, long size, String path){
+    public static void FILE_DELETE_REQUEST(String md5, String timestamp, long size, String path){
         // there should be another edition for receiving severs
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_REQUEST");
@@ -133,7 +135,7 @@ public class JSON_process {
         System.out.println(obj);
     }
 
-    public static void FILE_DELETE_RESPONSE(String md5, long timestamp, long size, String path, problems prob){
+    public static void FILE_DELETE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -153,14 +155,14 @@ public class JSON_process {
         System.out.println(obj);
     }
 
-    public static void FILE_MODIFY_REQUEST(String md5, long timestamp, long size, String path){
+    public static void FILE_MODIFY_REQUEST(String md5, String timestamp, long size, String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_MODIFY_REQUEST");
         fileDescriptor(md5, timestamp, size, path, obj);
         System.out.println(obj);
     }
 
-    public static void FILE_MODIFY_RESPONSE(String md5, long timestamp, long size, String path, problems prob){
+    public static void FILE_MODIFY_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_MODIFY_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -260,6 +262,9 @@ public class JSON_process {
     public static void getMessage(JSONObject obj){
         // first JSONObject need to be deal with, and then use obj as input
         Command information = (Command) obj.get("command");
+        String md5,msg = null;
+        long size;
+        int port, postion, length;
         switch (information){
             case INVALID_PROTOCOL:
                 // something about socket instead of system
@@ -269,35 +274,37 @@ public class JSON_process {
                 System.out.println("  ");
             case HANDSHAKE_REQUEST:
                 String host = (String) obj.get("host");
-                int port = (int) obj.get("port");
+                port = (int) obj.get("port");
                 System.out.println("host:"+ host);
                 System.out.println("port:" + port);
                 break;
             case FILE_CREATE_REQUEST:
-                String md5 = (String) obj.get("md5");
-                long timestamp = (long) obj.get("lastModified");
-                long size = (long) obj.get("fileSize");
+                md5 = (String) obj.get("md5");
+                System.out.println("md5: "+ md5);
+                String timestamp = (String) obj.get("lastModified");
+                size = (long) obj.get("fileSize");
                 String pathName = (String) obj.get("pathName");
+                
                 break;
             case FILE_BYTES_REQUEST:
                 //do switch case work or do i need write in different functions
                 md5 = (String) obj.get("md5");
-                timestamp = (long) obj.get("lastModified");
+                timestamp = (String) obj.get("lastModified");
                 size = (long) obj.get("fileSize");
                 pathName = (String) obj.get("pathName");
-                int postion = (int) obj.get("position");
-                int length = (int) obj.get("length");
+                postion = (int) obj.get("position");
+                length = (int) obj.get("length");
                 break;
             case FILE_DELETE_REQUEST:
                 md5 = (String) obj.get("md5");
-                timestamp = (long) obj.get("lastModified");
+                timestamp = (String) obj.get("lastModified");
                 size = (long) obj.get("fileSize");
                 pathName = (String) obj.get("pathName");
                 postion = (int) obj.get("position");
                 break;
             case FILE_MODIFY_REQUEST:
                 md5 = (String) obj.get("md5");
-                timestamp = (long) obj.get("lastModified");
+                timestamp = (String) obj.get("lastModified");
                 size = (long) obj.get("fileSize");
                 pathName = (String) obj.get("pathName");
                 break;
@@ -310,21 +317,30 @@ public class JSON_process {
 
 
             case HANDSHAKE_RESPONSE:
-                String msg = (String) obj.get("message");
+                msg = (String) obj.get("message");
+                break;
             case FILE_CREATE_RESPONSE:
                 msg = (String) obj.get("message");
+                System.out.println(msg);
+                break;
             case FILE_BYTES_RESPONSE:
                 msg = (String) obj.get("message");
+                break;
             case FILE_DELETE_RESPONSE:
                 msg = (String) obj.get("message");
+                break;
             case FILE_MODIFY_RESPONSE:
                 msg = (String) obj.get("message");
+                break;
             case DIRECTORY_CREATE_RESPONSE:
                 msg = (String) obj.get("message");
+                break;
             case DIRECTORY_DELETE_RESPONSE:
                 msg = (String) obj.get("message");
+                break;
 
         }
+        //System.out.println(msg);
 
     }
 
@@ -336,6 +352,10 @@ public class JSON_process {
         HANDSHAKE_REQUEST("Unimelb", 8111);
         HANDSHAKE_RESPONSE("Unimelb", 8111);
         //not finish due to too late.
+        JSONObject obj = FILE_CREATE_RESPONSE("074195d72c47315efae797b69393e5e5",
+                "1553417607000",  45787, "test.jpg", problems.NO_ERROR);
+        getMessage(obj);
+
 
     }
 }
