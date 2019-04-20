@@ -15,11 +15,13 @@ public class ServerMain implements FileSystemObserver {
 	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
+		System.out.println(Configuration.getConfigurationValue("path"));
 	}
 
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
 		// TODO: process events
+		System.out.println("lol");
 	}
 	
 }
