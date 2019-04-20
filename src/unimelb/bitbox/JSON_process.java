@@ -249,36 +249,37 @@ public class JSON_process {
         System.out.println(obj);
     }
 
-    public enum Command{
+    /*public enum Command{
         INVALID_PROTOCOL,CONNECTION_REFUSED, HANDSHAKE_REQUEST, HANDSHAKE_RESPONSE, FILE_CREATE_REQUEST,
         FILE_CREATE_RESPONSE, FILE_BYTES_REQUEST, FILE_BYTES_RESPONSE, FILE_DELETE_REQUEST, FILE_DELETE_RESPONSE,
         FILE_MODIFY_REQUEST, FILE_MODIFY_RESPONSE, DIRECTORY_CREATE_REQUEST, DIRECTORY_CREATE_RESPONSE,
         DIRECTORY_DELETE_REQUEST, DIRECTORY_DELETE_RESPONSE
-    }
+    }*/
 
 
     // From this part, it is about get JSON message and transmit to java
 
     public static void getMessage(JSONObject obj){
         // first JSONObject need to be deal with, and then use obj as input
-        Command information = (Command) obj.get("command");
-        String md5,msg = null;
+        String information = (String) obj.get("command");
+        String md5;
+        String msg = null;
         long size;
         int port, postion, length;
         switch (information){
-            case INVALID_PROTOCOL:
+            case "INVALID_PROTOCOL":
                 // something about socket instead of system
                 System.out.println(" ");
-            case CONNECTION_REFUSED:
+            case "CONNECTION_REFUSED":
                 // socket output rather than system
                 System.out.println("  ");
-            case HANDSHAKE_REQUEST:
+            case "HANDSHAKE_REQUEST":
                 String host = (String) obj.get("host");
                 port = (int) obj.get("port");
                 System.out.println("host:"+ host);
                 System.out.println("port:" + port);
                 break;
-            case FILE_CREATE_REQUEST:
+            case "FILE_CREATE_REQUEST":
                 md5 = (String) obj.get("md5");
                 System.out.println("md5: "+ md5);
                 String timestamp = (String) obj.get("lastModified");
@@ -286,7 +287,7 @@ public class JSON_process {
                 String pathName = (String) obj.get("pathName");
                 
                 break;
-            case FILE_BYTES_REQUEST:
+            case "FILE_BYTES_REQUEST":
                 //do switch case work or do i need write in different functions
                 md5 = (String) obj.get("md5");
                 timestamp = (String) obj.get("lastModified");
@@ -295,52 +296,52 @@ public class JSON_process {
                 postion = (int) obj.get("position");
                 length = (int) obj.get("length");
                 break;
-            case FILE_DELETE_REQUEST:
+            case "FILE_DELETE_REQUEST":
                 md5 = (String) obj.get("md5");
                 timestamp = (String) obj.get("lastModified");
                 size = (long) obj.get("fileSize");
                 pathName = (String) obj.get("pathName");
                 postion = (int) obj.get("position");
                 break;
-            case FILE_MODIFY_REQUEST:
+            case "FILE_MODIFY_REQUEST":
                 md5 = (String) obj.get("md5");
                 timestamp = (String) obj.get("lastModified");
                 size = (long) obj.get("fileSize");
                 pathName = (String) obj.get("pathName");
                 break;
-            case DIRECTORY_CREATE_REQUEST:
+            case "DIRECTORY_CREATE_REQUEST":
                 pathName = (String) obj.get("pathName");
                 break;
-            case DIRECTORY_DELETE_REQUEST:
+            case "DIRECTORY_DELETE_REQUEST":
                 pathName = (String) obj.get("pathName");
                 break;
 
 
-            case HANDSHAKE_RESPONSE:
+            case "HANDSHAKE_RESPONSE":
                 msg = (String) obj.get("message");
                 break;
-            case FILE_CREATE_RESPONSE:
+            case "FILE_CREATE_RESPONSE":
                 msg = (String) obj.get("message");
-                System.out.println(msg);
+                //System.out.println(msg);
                 break;
-            case FILE_BYTES_RESPONSE:
-                msg = (String) obj.get("message");
-                break;
-            case FILE_DELETE_RESPONSE:
+            case "FILE_BYTES_RESPONSE":
                 msg = (String) obj.get("message");
                 break;
-            case FILE_MODIFY_RESPONSE:
+            case "FILE_DELETE_RESPONSE":
                 msg = (String) obj.get("message");
                 break;
-            case DIRECTORY_CREATE_RESPONSE:
+            case "FILE_MODIFY_RESPONSE":
                 msg = (String) obj.get("message");
                 break;
-            case DIRECTORY_DELETE_RESPONSE:
+            case "DIRECTORY_CREATE_RESPONSE":
+                msg = (String) obj.get("message");
+                break;
+            case "DIRECTORY_DELETE_RESPONSE":
                 msg = (String) obj.get("message");
                 break;
 
         }
-        //System.out.println(msg);
+        System.out.println(msg);
 
     }
 
@@ -354,6 +355,7 @@ public class JSON_process {
         //not finish due to too late.
         JSONObject obj = FILE_CREATE_RESPONSE("074195d72c47315efae797b69393e5e5",
                 "1553417607000",  45787, "test.jpg", problems.NO_ERROR);
+        //System.out.println(obj);
         getMessage(obj);
 
 
