@@ -34,7 +34,7 @@ public class Peer
 
         */
         
-        Client c0 = new Client("10.12.190.79", 900);
+        Client c0 = new Client("10.13.190.79",900);
         Thread tr0 = new Thread(c0);
         tr0.start();
         /*Client c1 = new Client("10.13.168.236", 80);

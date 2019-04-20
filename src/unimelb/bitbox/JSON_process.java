@@ -3,6 +3,8 @@ package unimelb.bitbox;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.awt.*;
+
 public class JSON_process {
     // this part is JSON translation
     public enum problems{
@@ -13,13 +15,14 @@ public class JSON_process {
     // There exists a huge problem, which is the out-of-order messages or elements in JSON
     // using JSON-simple package
 
-    public static void INVALID_PROTOCOL(){
+    public static JSONObject INVALID_PROTOCOL(){
         JSONObject obj = new JSONObject();
         obj.put("command", "INVALID_PROTOCOL");
         obj.put("message", "message must contain a command field as string");
-        System.out.println(obj);
+        //System.out.println(obj);
+        return obj;
     }
-    public static void CONNECTION_REFUSED(String host, int port){
+    public static JSONObject CONNECTION_REFUSED(String host, int port){
         JSONObject obj = new JSONObject();
         // how to do a peer list ????
         obj.put("message",  "connection limit reached");
@@ -34,24 +37,29 @@ public class JSON_process {
         list.add(obj2);
         list.add(obj3);
         obj.put("peer", list);
-        System.out.println(obj);
+        return obj;
+        //System.out.println(obj);
     }
-    public static void HANDSHAKE_REQUEST(String host, int port) {
+    public static JSONObject HANDSHAKE_REQUEST(String host, int port) {
         JSONObject obj = new JSONObject();
+        JSONObject obj2 = hostPort(host, port);
         obj.put("command", "HANDSHAKE_REQUEST");
-        hostPort(host, port, obj);
+        obj.put("hostPort", obj2);
+        return obj;
     }
-    public static void HANDSHAKE_RESPONSE(String host, int port){
+    public static JSONObject HANDSHAKE_RESPONSE(String host, int port){
         JSONObject obj = new JSONObject();
         obj.put("command", "HANDSHAKE_RESPONSE");
-        hostPort(host, port, obj);
-    }
-    private static void hostPort(String host, int port, JSONObject obj) {
-        JSONObject obj2 = new JSONObject();
-        obj2.put("host", host);
-        obj2.put("port", port);
+        JSONObject obj2 = hostPort(host, port);
         obj.put("hostPort", obj2);
-        System.out.println(obj);
+        return obj;
+    }
+    private static JSONObject hostPort(String host, int port) {
+        JSONObject obj = new JSONObject();
+        obj.put("host", host);
+        obj.put("port", port);
+        return obj;
+        //System.out.println(obj);
     }
 
     private static void fileDescriptor(String md5, String timestamp, long size, String pathName, JSONObject obj) {
@@ -95,7 +103,7 @@ public class JSON_process {
         return obj;
     }
 
-    public static void FILE_BYTES_REQUEST(String md5, String timestamp, long size, String pathName,
+    public static JSONObject FILE_BYTES_REQUEST(String md5, String timestamp, long size, String pathName,
                                           int position, int length){
         //needs to call the File System Manager to read the requested bytes and package them into a response message
         JSONObject obj = new JSONObject();
@@ -103,10 +111,11 @@ public class JSON_process {
         fileDescriptor(md5, timestamp, size, pathName, obj);
         obj.put("position", position);
         obj.put("length", length);
-        System.out.println(obj);
+        return obj;
+        //System.out.println(obj);
     }
 
-    public static void FILE_BYTES_RESPONSE(String md5, String timestamp, long size, String path,
+    public static JSONObject FILE_BYTES_RESPONSE(String md5, String timestamp, long size, String path,
                                            int position, int length, String content, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_BYTES_RESPONSE");
@@ -124,18 +133,20 @@ public class JSON_process {
             obj.put("status", false);
         }
         // is there need "else"
-        System.out.println(obj);
+        return obj;
+        //System.out.println(obj);
     }
 
-    public static void FILE_DELETE_REQUEST(String md5, String timestamp, long size, String path){
+    public static JSONObject FILE_DELETE_REQUEST(String md5, String timestamp, long size, String path){
         // there should be another edition for receiving severs
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_REQUEST");
         fileDescriptor(md5, timestamp, size, path, obj);
-        System.out.println(obj);
+        return obj;
+        //System.out.println(obj);
     }
 
-    public static void FILE_DELETE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
+    public static JSONObject FILE_DELETE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -152,17 +163,19 @@ public class JSON_process {
             obj.put("message", "there was a problem deleting the file");
             obj.put("status", false);
         }
-        System.out.println(obj);
+        return obj;
+        //System.out.println(obj);
     }
 
-    public static void FILE_MODIFY_REQUEST(String md5, String timestamp, long size, String path){
+    public static JSONObject FILE_MODIFY_REQUEST(String md5, String timestamp, long size, String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_MODIFY_REQUEST");
         fileDescriptor(md5, timestamp, size, path, obj);
-        System.out.println(obj);
+        return obj;
+        //System.out.println(obj);
     }
 
-    public static void FILE_MODIFY_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
+    public static JSONObject FILE_MODIFY_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_MODIFY_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -186,16 +199,18 @@ public class JSON_process {
             obj.put("message",  "pathname does not exist");
             obj.put("status", false);
         }
+        return obj;
     }
 
-    public static void DIRECTORY_CREATE_REQUEST(String path){
+    public static JSONObject DIRECTORY_CREATE_REQUEST(String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_CREATE_REQUEST");
         obj.put("pathName" ,"dir/subdir/" + path); // not sure about this.
         // this needs modify to original path + modify path
+        return obj;
     }
 
-    public static void DIRECTORY_CREATE_RESPONSE(String path, problems prob){
+    public static JSONObject DIRECTORY_CREATE_RESPONSE(String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_CREATE_RESPONSE");
         obj.put("pathName" ,"dir/subdir/"+path);
@@ -216,16 +231,19 @@ public class JSON_process {
             obj.put("message", "pathname already exists");
             obj.put("status", false);
         }
+        return obj;
     }
 
-    public static void DIRECTORY_DELETE_REQUEST(String path){
+    public static JSONObject DIRECTORY_DELETE_REQUEST(String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_DELETE_REQUEST");
         obj.put("pathName" ,"dir/subdir/"+path); // not sure about this.
         // this needs modify to original path + modify path
+        return obj;
+
     }
 
-    public static void DIRECTORY_DELETE_RESPONSE(String path, problems prob){
+    public static JSONObject DIRECTORY_DELETE_RESPONSE(String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_DELETE_RESPONSE");
         obj.put("pathName" ,"dir/subdir/" + path); // not sure about this.
@@ -246,7 +264,8 @@ public class JSON_process {
             obj.put("message", "there was a problem deleting the directory");
             obj.put("status", false);
         }
-        System.out.println(obj);
+        return obj;
+        //System.out.println(obj);
     }
 
     /*public enum Command{
@@ -262,30 +281,30 @@ public class JSON_process {
     public static void getMessage(JSONObject obj){
         // first JSONObject need to be deal with, and then use obj as input
         String information = (String) obj.get("command");
-        String md5;
-        String msg = null;
-        long size;
-        int port, postion, length;
+        String md5 = " ", host = " ", msg = " ", timestamp = " ", pathName = " ";
+        long size = 0;
+        int port = 0 , postion = 0, length = 0;
         switch (information){
             case "INVALID_PROTOCOL":
                 // something about socket instead of system
-                System.out.println(" ");
+                //System.out.println(" ");
+                msg = (String) obj.get("message");
+                break;
             case "CONNECTION_REFUSED":
                 // socket output rather than system
-                System.out.println("  ");
+                //System.out.println("  ");
+                msg = (String) obj.get("message");
+                break;
             case "HANDSHAKE_REQUEST":
-                String host = (String) obj.get("host");
+                host = (String) obj.get("host");
                 port = (int) obj.get("port");
-                System.out.println("host:"+ host);
-                System.out.println("port:" + port);
                 break;
             case "FILE_CREATE_REQUEST":
                 md5 = (String) obj.get("md5");
-                System.out.println("md5: "+ md5);
-                String timestamp = (String) obj.get("lastModified");
+                //System.out.println("md5: "+ md5);
+                timestamp = (String) obj.get("lastModified");
                 size = (long) obj.get("fileSize");
-                String pathName = (String) obj.get("pathName");
-                
+                pathName = (String) obj.get("pathName");
                 break;
             case "FILE_BYTES_REQUEST":
                 //do switch case work or do i need write in different functions
@@ -341,22 +360,52 @@ public class JSON_process {
                 break;
 
         }
-        System.out.println(msg);
+        if(msg != " "){
+            System.out.println(msg);
+        }
+        if(host != " "){
+            System.out.println("host: " + host);
+        }
+        if (size != 0) {
+            System.out.println("size: " + size);
+        }
+        if (length != 0) {
+            System.out.println("length: " + length);
+        }
+        if (port != 0) {
+            System.out.println("port:" + port);
+        }
+        if (md5 != " ") {
+            System.out.println("md5: " + md5);
+        }
+        if (postion != 0) {
+            System.out.println("postion: " + postion);
+        }
+        if(timestamp != " "){
+            System.out.println("timestamp: " + Integer.parseInt(timestamp));
+        }
+        if (pathName != " ") {
+            System.out.println("pathName: " + pathName);
+        }
 
     }
 
 
     public static void main(String [] args){
         // test
-        INVALID_PROTOCOL();
-        CONNECTION_REFUSED("Unimelb", 8111);
-        HANDSHAKE_REQUEST("Unimelb", 8111);
-        HANDSHAKE_RESPONSE("Unimelb", 8111);
+        JSONObject obj1 = INVALID_PROTOCOL();
+        JSONObject obj2 = CONNECTION_REFUSED("Unimelb", 8111);
+        JSONObject obj3 = HANDSHAKE_REQUEST("Unimelb", 8111);
+        JSONObject obj4 = HANDSHAKE_RESPONSE("Unimelb", 8111);
         //not finish due to too late.
         JSONObject obj = FILE_CREATE_RESPONSE("074195d72c47315efae797b69393e5e5",
                 "1553417607000",  45787, "test.jpg", problems.NO_ERROR);
         //System.out.println(obj);
         getMessage(obj);
+        getMessage(obj1);
+        getMessage(obj2);
+        getMessage(obj3);
+        getMessage(obj4);
 
 
     }
