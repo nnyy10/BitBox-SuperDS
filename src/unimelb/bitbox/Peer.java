@@ -18,8 +18,8 @@ public class Peer
 	private static Logger log = Logger.getLogger(Peer.class.getName());
     public static void main( String[] args ) throws IOException, NumberFormatException, NoSuchAlgorithmException
     {	
-//    	EntryPointServer server = new EntryPointServer(900);
-//    	new Thread(server).start();
+    	EntryPointServer server = new EntryPointServer(900);
+    	new Thread(server).start();
 //    	
 //
 //    	System.setProperty("java.util.logging.SimpleFormatter.format",
@@ -34,8 +34,6 @@ public class Peer
 //        Client c0 = new Client("43.240.97.106",3000);
 //        Thread tr0 = new Thread(c0);
 //        tr0.start();
-
-    	ServerMain sm = new ServerMain();
 
     }
 }

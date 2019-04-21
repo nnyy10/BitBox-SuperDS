@@ -27,17 +27,29 @@ public class PeerConnection implements Runnable{
     }
 
     public void run() {
-        try {
-
-            long time = System.currentTimeMillis();
-            output.write(("HTTP/1.1 200 OK\n\nWorkerRunnable: " + " - " + time + "").getBytes());
-            output.close();
-            input.close();
-            System.out.println("Request processed: " + time);
-        } catch (IOException e) {
-            //report exception somewhere.
-            e.printStackTrace();
-        }
+        String line = ""; 
+        
+        // reads message from client until "Over" is sent 
+        while (!line.equals("Over")) 
+        { 
+            try
+            { 
+                line = input.readUTF(); 
+                System.out.println(line); 
+	        } catch (Exception e) {
+	        	try{
+		        	this.input.close();
+		        	this.output.close();
+		        	this.socket.close();
+		        	break;
+		        } catch(Exception e1){
+		        	
+		        	System.out.println(e1);
+		        }
+	            //report exception somewhere.
+	            e.printStackTrace();
+	        }
+    	}
     }
     
     public void send(String message){

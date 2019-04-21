@@ -9,30 +9,29 @@ import unimelb.bitbox.PeerConnection;
 import unimelb.bitbox.JSON_process;
 
 
-public class Client extends PeerConnection implements Runnable {
+public class Server extends PeerConnection implements Runnable {
 
-	public Client(Socket socket) {
+	public Server(Socket socket) {
 		super(socket);
 		try {
-
 			input = new DataInputStream(this.socket.getInputStream());
 			output = new DataOutputStream(this.socket.getOutputStream());
-			
-			output.writeUTF("handshake");
-			System.out.println(input.readUTF());
 		} catch (IOException e) {
-			System.out.println("Connection to: FAILED");
 			e.printStackTrace();
 		}
 	}
 
 	public void run() {
-		String line = "";
-		// keep reading until "Over" is input
-		while (true) {
-			try {
-				input.readUTF();
-			} catch (IOException i) {
+		String line = ""; 
+        
+        // reads message from client until "Over" is sent 
+        while (!line.equals("Over")) 
+        { 
+            try
+            { 
+                line = input.readUTF(); 
+                System.out.println(line); 
+	        } catch (Exception e) {
 	        	try{
 		        	this.input.close();
 		        	this.output.close();
@@ -43,9 +42,9 @@ public class Client extends PeerConnection implements Runnable {
 		        	System.out.println(e1);
 		        }
 	            //report exception somewhere.
-	            i.printStackTrace();
-			}
-		}
+	            e.printStackTrace();
+	        }
+    	}
 
 	}
 }
