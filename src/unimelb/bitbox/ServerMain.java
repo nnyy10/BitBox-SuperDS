@@ -2,6 +2,7 @@ package unimelb.bitbox;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import unimelb.bitbox.util.Configuration;
@@ -13,15 +14,25 @@ public class ServerMain implements FileSystemObserver {
 	private static Logger log = Logger.getLogger(ServerMain.class.getName()); 
 	protected FileSystemManager fileSystemManager;
 	
+	private ArrayList connections = new ArrayList();
+	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
 		System.out.println(Configuration.getConfigurationValue("path"));
 	}
 
+	
+	
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
 		// TODO: process events
 		//System.out.println("lol");
+		if(fileSystemEvent == FileSystemManager.EVENT.DIRECTORY_CREATE){
+			String string = "";
+			for(Object c: connections){
+				c.send(string);
+			}
+		}
 	}
 	
 }

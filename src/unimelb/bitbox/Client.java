@@ -5,25 +5,22 @@ import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.io.*;
 import unimelb.bitbox.ServerMain;
+import unimelb.bitbox.PeerConnection;
 
 
-public class Client extends ServerMain implements Runnable {
-	private Socket socket;
-	private DataInputStream input;
-	private DataOutputStream output;
+public class Client extends PeerConnection implements Runnable {
 
-	public Client(String host, int port)  throws NumberFormatException, IOException, NoSuchAlgorithmException {
+	public Client(Socket socket) {
+		super(socket);
 		try {
-			socket = new Socket(host, port);
-			System.out.println("Client: Connected to host: " + host + " Port: " + Integer.toString(port));
 
-			input = new DataInputStream(socket.getInputStream());
-			output = new DataOutputStream(socket.getOutputStream());
+			input = new DataInputStream(this.socket.getInputStream());
+			output = new DataOutputStream(this.socket.getOutputStream());
 			
 			output.writeUTF("handshake");
 			System.out.println(input.readUTF());
 		} catch (IOException e) {
-			System.out.println("Connection to: " + host + " Port: " + Integer.toString(port) + " FAILED");
+			System.out.println("Connection to: FAILED");
 			e.printStackTrace();
 		}
 	}
