@@ -53,6 +53,11 @@ public class PeerConnection implements Runnable{
     }
     
     public void send(String message){
+    	try{
+    		outputStream.writeUTF(message);
+    	} catch(Exception e){
+    		System.out.println("cant print " + message);
+    	}
     	
     }
 }
