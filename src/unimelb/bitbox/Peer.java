@@ -2,9 +2,11 @@ package unimelb.bitbox;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
+import java.util.logging.SocketHandler;
 
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemObserver;
@@ -18,8 +20,8 @@ public class Peer
 	private static Logger log = Logger.getLogger(Peer.class.getName());
     public static void main( String[] args ) throws IOException, NumberFormatException, NoSuchAlgorithmException
     {	
-    	EntryPointServer server = new EntryPointServer(900);
-    	new Thread(server).start();
+//    	EntryPointServer server = new EntryPointServer(900);
+//    	new Thread(server).start();
 //    	
 //
 //    	System.setProperty("java.util.logging.SimpleFormatter.format",
@@ -31,9 +33,11 @@ public class Peer
 //        new File(Paths.get(System.getProperty("user.home"), "BitBox").toString()).mkdirs();
 //        
 //        43.240.97.106:3000
-//        Client c0 = new Client("43.240.97.106",3000);
-//        Thread tr0 = new Thread(c0);
-//        tr0.start();
+        Socket sc = new Socket("10.13.190.79",900);
+
+        Client c0 = new Client(sc);
+        Thread tr0 = new Thread(c0);
+        tr0.start();
 
     }
 }

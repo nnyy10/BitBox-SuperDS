@@ -15,11 +15,11 @@ public class Client extends PeerConnection implements Runnable {
 		super(socket);
 		try {
 
-			input = new DataInputStream(this.socket.getInputStream());
-			output = new DataOutputStream(this.socket.getOutputStream());
-			
-			output.writeUTF("handshake");
-			System.out.println(input.readUTF());
+			inputStream = new DataInputStream(this.socket.getInputStream());
+			outputSteam = new DataOutputStream(this.socket.getOutputStream());
+
+			outputSteam.writeUTF("handshake");
+			System.out.println(inputStream.readUTF());
 		} catch (IOException e) {
 			System.out.println("Connection to: FAILED");
 			e.printStackTrace();
@@ -27,15 +27,21 @@ public class Client extends PeerConnection implements Runnable {
 	}
 
 	public void run() {
+// string to read message from input
 		String line = "";
+
 		// keep reading until "Over" is input
-		while (true) {
-			try {
-				input.readUTF();
-			} catch (IOException i) {
+		while (!line.equals("Over"))
+		{
+			try
+			{
+				line = input.readLine();
+				outputStream.writeUTF(line);
+
+		} catch (IOException i) {
 	        	try{
-		        	this.input.close();
-		        	this.output.close();
+		        	this.inputStram.close();
+		        	this.outputSteam.close();
 		        	this.socket.close();
 		        	break;
 		        } catch(Exception e1){
