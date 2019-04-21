@@ -1,9 +1,8 @@
 package unimelb.bitbox;
-
+import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.awt.*;
 @SuppressWarnings("unchecked")
 
 public class JSON_process {
@@ -16,14 +15,14 @@ public class JSON_process {
     // There exists a huge problem, which is the out-of-order messages or elements in JSON
     // using JSON-simple package
 
-    public static JSONObject INVALID_PROTOCOL(){
+    public static String INVALID_PROTOCOL(){
         JSONObject obj = new JSONObject();
         obj.put("command", "INVALID_PROTOCOL");
         obj.put("message", "message must contain a command field as string");
         //System.out.println(obj);
-        return obj;
+        return obj.toString();
     }
-    public static JSONObject CONNECTION_REFUSED(String [] host, int [] port, int hostNumber){
+    public static String CONNECTION_REFUSED(String [] host, int [] port, int hostNumber){
         JSONObject obj = new JSONObject();
         // how to do a peer list ???? is it a list of pairs or two lists of hosts and ports
         obj.put("message",  "connection limit reached");
@@ -46,26 +45,26 @@ public class JSON_process {
 
         obj.put("peers", list);
         //System.out.println(obj);
-        return obj;
+        return obj.toString();
         //System.out.println(obj);
     }
-    public static JSONObject HANDSHAKE_REQUEST(String host, int port) {
+    public static String HANDSHAKE_REQUEST(String host, int port) {
         JSONObject obj = new JSONObject();
         obj.put("command", "HANDSHAKE_REQUEST");
         //obj.put("host", host);
         //obj.put("port", port);
         JSONObject obj2 = hostPort(host, port);
         obj.put("hostPort", obj2);
-        return obj;
+        return obj.toString();
     }
-    public static JSONObject HANDSHAKE_RESPONSE(String host, int port){
+    public static String HANDSHAKE_RESPONSE(String host, int port){
         JSONObject obj = new JSONObject();
         obj.put("command", "HANDSHAKE_RESPONSE");
         obj.put("host", host);
         obj.put("port", port);
         JSONObject obj2 = hostPort(host, port);
         obj.put("hostPort", obj2);
-        return obj;
+        return obj.toString();
     }
 
     private static JSONObject hostPort(String host, int port) {
@@ -86,16 +85,16 @@ public class JSON_process {
         //System.out.println(obj);
     }
 
-    public static JSONObject FILE_CREATE_REQUEST(String md5, String timestamp, long size, String path){
+    public static String FILE_CREATE_REQUEST(String md5, String timestamp, long size, String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_CREATE_REQUEST");
         // there should be a blocksize ????
         fileDescriptor(md5, timestamp, size, path, obj);
         //System.out.println(obj);
-        return obj;
+        return obj.toString();
     }
 
-    public static JSONObject FILE_CREATE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
+    public static String FILE_CREATE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_CREATE_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -114,10 +113,10 @@ public class JSON_process {
         // is this solution a good way to meet the requirements
         // what about "else"
         //System.out.println(obj);
-        return obj;
+        return obj.toString();
     }
 
-    public static JSONObject FILE_BYTES_REQUEST(String md5, String timestamp, long size, String pathName,
+    public static String FILE_BYTES_REQUEST(String md5, String timestamp, long size, String pathName,
                                           int position, int length){
         //needs to call the File System Manager to read the requested bytes and package them into a response message
         JSONObject obj = new JSONObject();
@@ -125,11 +124,11 @@ public class JSON_process {
         fileDescriptor(md5, timestamp, size, pathName, obj);
         obj.put("position", position);
         obj.put("length", length);
-        return obj;
+        return obj.toString();
         //System.out.println(obj);
     }
 
-    public static JSONObject FILE_BYTES_RESPONSE(String md5, String timestamp, long size, String path,
+    public static String FILE_BYTES_RESPONSE(String md5, String timestamp, long size, String path,
                                            int position, int length, String content, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_BYTES_RESPONSE");
@@ -147,20 +146,20 @@ public class JSON_process {
             obj.put("status", false);
         }
         // is there need "else"
-        return obj;
+        return obj.toString();
         //System.out.println(obj);
     }
 
-    public static JSONObject FILE_DELETE_REQUEST(String md5, String timestamp, long size, String path){
+    public static String FILE_DELETE_REQUEST(String md5, String timestamp, long size, String path){
         // there should be another edition for receiving severs
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_REQUEST");
         fileDescriptor(md5, timestamp, size, path, obj);
-        return obj;
+        return obj.toString();
         //System.out.println(obj);
     }
 
-    public static JSONObject FILE_DELETE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
+    public static String FILE_DELETE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -177,19 +176,19 @@ public class JSON_process {
             obj.put("message", "there was a problem deleting the file");
             obj.put("status", false);
         }
-        return obj;
+        return obj.toString();
         //System.out.println(obj);
     }
 
-    public static JSONObject FILE_MODIFY_REQUEST(String md5, String timestamp, long size, String path){
+    public static String FILE_MODIFY_REQUEST(String md5, String timestamp, long size, String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_MODIFY_REQUEST");
         fileDescriptor(md5, timestamp, size, path, obj);
-        return obj;
+        return obj.toString();
         //System.out.println(obj);
     }
 
-    public static JSONObject FILE_MODIFY_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
+    public static String FILE_MODIFY_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_MODIFY_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -213,18 +212,18 @@ public class JSON_process {
             obj.put("message",  "pathname does not exist");
             obj.put("status", false);
         }
-        return obj;
+        return obj.toString();
     }
 
-    public static JSONObject DIRECTORY_CREATE_REQUEST(String path){
+    public static String DIRECTORY_CREATE_REQUEST(String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_CREATE_REQUEST");
         obj.put("pathName" ,"dir/subdir/" + path); // not sure about this.
         // this needs modify to original path + modify path
-        return obj;
+        return obj.toString();
     }
 
-    public static JSONObject DIRECTORY_CREATE_RESPONSE(String path, problems prob){
+    public static String DIRECTORY_CREATE_RESPONSE(String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_CREATE_RESPONSE");
         obj.put("pathName" ,"dir/subdir/"+path);
@@ -245,19 +244,19 @@ public class JSON_process {
             obj.put("message", "pathname already exists");
             obj.put("status", false);
         }
-        return obj;
+        return obj.toString();
     }
 
-    public static JSONObject DIRECTORY_DELETE_REQUEST(String path){
+    public static String DIRECTORY_DELETE_REQUEST(String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_DELETE_REQUEST");
         obj.put("pathName" ,"dir/subdir/"+path); // not sure about this.
         // this needs modify to original path + modify path
-        return obj;
+        return obj.toString();
 
     }
 
-    public static JSONObject DIRECTORY_DELETE_RESPONSE(String path, problems prob){
+    public static String DIRECTORY_DELETE_RESPONSE(String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_DELETE_RESPONSE");
         obj.put("pathName" ,"dir/subdir/" + path); // not sure about this.
@@ -278,7 +277,7 @@ public class JSON_process {
             obj.put("message", "there was a problem deleting the directory");
             obj.put("status", false);
         }
-        return obj;
+        return obj.toString();
         //System.out.println(obj);
     }
 
@@ -292,137 +291,147 @@ public class JSON_process {
 
     // From this part, it is about get JSON message and transmit to java
 
-    public static void getMessage(JSONObject obj){
-        // first JSONObject need to be deal with, and then use obj as input
-        String information = (String) obj.get("command");
-        String md5 = " ", host = " ", msg = " ", timestamp = " ", pathName = " ";
-        long size = 0;
-        int port = 0 , position = 0, length = 0;
-        JSONObject fileDescriptor;
-        switch (information){
-            case "INVALID_PROTOCOL":
-                // something about socket instead of system
-                //System.out.println(" ");
-                msg = (String) obj.get("message");
-                System.out.println(msg);
-                break;
-            case "CONNECTION_REFUSED":
-                // socket output rather than system
-                //System.out.println("  ");
-                msg = (String) obj.get("message");
-                System.out.println(msg);
-                JSONArray data =(JSONArray) obj.get("peers");
-                for (Object aData : data) {
-                    JSONObject peer = (JSONObject) aData;
-                    String sub_host = (String) peer.get("host");
-                    int sub_port = (int) peer.get("port");
-                    System.out.println("host: " + sub_host);
-                    System.out.println("port: " + sub_port);
-                }
-                break;
-            case "HANDSHAKE_REQUEST":
-                JSONObject hostPort = (JSONObject) obj.get("hostPort");
-                host = (String) hostPort.get("host");
-                port = (int) hostPort.get("port");
-                break;
-            case "FILE_CREATE_REQUEST":
-                fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-                md5 = (String) fileDescriptor.get("md5");
-                //System.out.println("md5: "+ md5);
-                timestamp = (String) fileDescriptor.get("lastModified");
-                size = (long) fileDescriptor.get("fileSize");
-                pathName = (String) obj.get("pathName");
-                break;
-            case "FILE_BYTES_REQUEST":
-                //do switch case work or do i need write in different functions
-                fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-                md5 = (String) fileDescriptor.get("md5");
-                //System.out.println("md5: "+ md5);
-                timestamp = (String) fileDescriptor.get("lastModified");
-                size = (long) fileDescriptor.get("fileSize");
-                pathName = (String) obj.get("pathName");
-                position = (int) obj.get("position");
-                length = (int) obj.get("length");
-                break;
-            case "FILE_DELETE_REQUEST":
-                fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-                md5 = (String) fileDescriptor.get("md5");
-                //System.out.println("md5: "+ md5);
-                timestamp = (String) fileDescriptor.get("lastModified");
-                size = (long) fileDescriptor.get("fileSize");
-                //position = (int) obj.get("position");
-                pathName = (String) obj.get("pathName");
-                break;
-            case "FILE_MODIFY_REQUEST":
-                fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-                md5 = (String) fileDescriptor.get("md5");
-                timestamp = (String) fileDescriptor.get("lastModified");
-                size = (long) fileDescriptor.get("fileSize");
-                pathName = (String) obj.get("pathName");
-                break;
-            case "DIRECTORY_CREATE_REQUEST":
-                pathName = (String) obj.get("pathName");
-                break;
-            case "DIRECTORY_DELETE_REQUEST":
-                pathName = (String) obj.get("pathName");
-                break;
+    public static void getMessage(String str){
+        JSONParser parser = new JSONParser();
+
+        try {
+            JSONObject obj = (JSONObject) parser.parse(str);
+            // first JSONObject need to be deal with, and then use obj as input
+            String information = (String) obj.get("command");
+            String md5 = " ", host = " ", msg = " ", timestamp = " ", pathName = " ";
+            long size = 0;
+            long port = 0 , position = 0, length = 0;
+            JSONObject fileDescriptor;
+            switch (information){
+                case "INVALID_PROTOCOL":
+                    // something about socket instead of system
+                    //System.out.println(" ");
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "CONNECTION_REFUSED":
+                    // socket output rather than system
+                    //System.out.println("  ");
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    JSONArray data =(JSONArray) obj.get("peers");
+                    for (Object aData : data) {
+                        JSONObject peer = (JSONObject) aData;
+                        String sub_host = (String) peer.get("host");
+                        long sub_port = (long)peer.get("port");
+                        System.out.println("host: " + sub_host);
+                        System.out.println("port: " + sub_port);
+                    }
+                    break;
+                case "HANDSHAKE_REQUEST":
+                    JSONObject hostPort = (JSONObject) obj.get("hostPort");
+                    host = (String) hostPort.get("host");
+                    port = (long) hostPort.get("port");
+                    break;
+                case "FILE_CREATE_REQUEST":
+                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+                    md5 = (String) fileDescriptor.get("md5");
+                    //System.out.println("md5: "+ md5);
+                    timestamp = (String) fileDescriptor.get("lastModified");
+                    size = (long) fileDescriptor.get("fileSize");
+                    pathName = (String) obj.get("pathName");
+                    break;
+                case "FILE_BYTES_REQUEST":
+                    //do switch case work or do i need write in different functions
+                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+                    md5 = (String) fileDescriptor.get("md5");
+                    //System.out.println("md5: "+ md5);
+                    timestamp = (String) fileDescriptor.get("lastModified");
+                    size = (long) fileDescriptor.get("fileSize");
+                    pathName = (String) obj.get("pathName");
+                    position = (long) obj.get("position");
+                    length = (long) obj.get("length");
+                    break;
+                case "FILE_DELETE_REQUEST":
+                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+                    md5 = (String) fileDescriptor.get("md5");
+                    //System.out.println("md5: "+ md5);
+                    timestamp = (String) fileDescriptor.get("lastModified");
+                    size = (long) fileDescriptor.get("fileSize");
+                    //position = (int) obj.get("position");
+                    pathName = (String) obj.get("pathName");
+                    break;
+                case "FILE_MODIFY_REQUEST":
+                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+                    md5 = (String) fileDescriptor.get("md5");
+                    timestamp = (String) fileDescriptor.get("lastModified");
+                    size = (long) fileDescriptor.get("fileSize");
+                    pathName = (String) obj.get("pathName");
+                    break;
+                case "DIRECTORY_CREATE_REQUEST":
+                    pathName = (String) obj.get("pathName");
+                    break;
+                case "DIRECTORY_DELETE_REQUEST":
+                    pathName = (String) obj.get("pathName");
+                    break;
 
 
-            case "HANDSHAKE_RESPONSE":
-                JSONObject hostPort1 = (JSONObject) obj.get("hostPort");
-                host = (String) hostPort1.get("host");
-                port = (int) hostPort1.get("port");
-                break;
-            case "FILE_CREATE_RESPONSE":
-                msg = (String) obj.get("message");
-                System.out.println(msg);
-                break;
-            case "FILE_BYTES_RESPONSE":
-                msg = (String) obj.get("message");
-                System.out.println(msg);
-                break;
-            case "FILE_DELETE_RESPONSE":
-                msg = (String) obj.get("message");
-                System.out.println(msg);
-                break;
-            case "FILE_MODIFY_RESPONSE":
-                msg = (String) obj.get("message");
-                System.out.println(msg);
-                break;
-            case "DIRECTORY_CREATE_RESPONSE":
-                msg = (String) obj.get("message");
-                System.out.println(msg);
-                break;
-            case "DIRECTORY_DELETE_RESPONSE":
-                msg = (String) obj.get("message");
-                System.out.println(msg);
-                break;
+                case "HANDSHAKE_RESPONSE":
+                    JSONObject hostPort1 = (JSONObject) obj.get("hostPort");
+                    host = (String) hostPort1.get("host");
+                    port = (long) hostPort1.get("port");
+                    break;
+                case "FILE_CREATE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "FILE_BYTES_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "FILE_DELETE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "FILE_MODIFY_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "DIRECTORY_CREATE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "DIRECTORY_DELETE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
 
+            }
+            if(!host.equals(" ")){
+                System.out.println("host: " + host);
+            }
+            if (size != 0) {
+                System.out.println("size: " + size);
+            }
+            if (length != 0) {
+                System.out.println("length: " + length);
+            }
+            if (port != 0) {
+                System.out.println("port:" + port);
+            }
+            if (!md5.equals(" ")) {
+                System.out.println("md5: " + md5);
+            }
+            if (position != 0) {
+                System.out.println("position: " + position);
+            }
+            if(!timestamp.equals(" ")){
+                System.out.println("timestamp: " + timestamp);
+            }
+            if (!pathName.equals(" ")) {
+                System.out.println("pathName: " + pathName);
+            }
+        }catch (Exception e){
+
+            JSONObject obj = null;
+            e.printStackTrace();
         }
-        if(!host.equals(" ")){
-            System.out.println("host: " + host);
-        }
-        if (size != 0) {
-            System.out.println("size: " + size);
-        }
-        if (length != 0) {
-            System.out.println("length: " + length);
-        }
-        if (port != 0) {
-            System.out.println("port:" + port);
-        }
-        if (!md5.equals(" ")) {
-            System.out.println("md5: " + md5);
-        }
-        if (position != 0) {
-            System.out.println("position: " + position);
-        }
-        if(!timestamp.equals(" ")){
-            System.out.println("timestamp: " + timestamp);
-        }
-        if (!pathName.equals(" ")) {
-            System.out.println("pathName: " + pathName);
-        }
+
 
     }
 
@@ -439,25 +448,26 @@ public class JSON_process {
         String path = "dir/subdir/etc";
 
         long size = 45787;
-        JSONObject invalid_protocol = INVALID_PROTOCOL();
-        JSONObject connection_refused = CONNECTION_REFUSED( hosts, ports,2);
-        JSONObject handshake_request = HANDSHAKE_REQUEST("Unimelb", 8111);
-        JSONObject handshake_response = HANDSHAKE_RESPONSE("Unimelb", 8111);
+        String invalid_protocol = INVALID_PROTOCOL();
+        String connection_refused = CONNECTION_REFUSED( hosts, ports,2);
+        String handshake_request = HANDSHAKE_REQUEST("Unimelb", 8111);
+        String handshake_response = HANDSHAKE_RESPONSE("Unimelb", 8111);
         //not finish due to too late.
-        JSONObject file_create_response = FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, problems.NO_ERROR);
-        JSONObject file_create_request =FILE_CREATE_REQUEST(md5, timestamp, size, pathName);
-        JSONObject file_bytes_request = FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length);
-        JSONObject  file_bytes_response = FILE_BYTES_RESPONSE(md5, timestamp, size, pathName, position, length,
+        String file_create_response = FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, problems.NO_ERROR);
+        String file_create_request =FILE_CREATE_REQUEST(md5, timestamp, size, pathName);
+        String file_bytes_request = FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length);
+        String  file_bytes_response = FILE_BYTES_RESPONSE(md5, timestamp, size, pathName, position, length,
                 "aGVsbG8K", problems.UNABLE_READ);
-        JSONObject file_delete_request = FILE_DELETE_REQUEST(md5, timestamp, size,pathName);
-        JSONObject file_delete_response =FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, problems.UNSAFE_PATH);
-        JSONObject file_modify_request = FILE_MODIFY_REQUEST(md5,timestamp,size,pathName);
-        JSONObject file_modify_response = FILE_MODIFY_RESPONSE(md5,timestamp,size,pathName,problems.MODIFY_ERROR);
-        JSONObject directory_create_request = DIRECTORY_CREATE_REQUEST(path);
-        JSONObject directory_delete_request = DIRECTORY_DELETE_REQUEST(path);
-        JSONObject directory_create_response= DIRECTORY_CREATE_RESPONSE(path, problems.NO_ERROR);
-        JSONObject directory_delete_response = DIRECTORY_DELETE_RESPONSE(path, problems.PATHNAME_NOT_EXIST);
+        String file_delete_request = FILE_DELETE_REQUEST(md5, timestamp, size,pathName);
+        String file_delete_response =FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, problems.UNSAFE_PATH);
+        String file_modify_request = FILE_MODIFY_REQUEST(md5,timestamp,size,pathName);
+        String file_modify_response = FILE_MODIFY_RESPONSE(md5,timestamp,size,pathName,problems.MODIFY_ERROR);
+        String directory_create_request = DIRECTORY_CREATE_REQUEST(path);
+        String directory_delete_request = DIRECTORY_DELETE_REQUEST(path);
+        String directory_create_response= DIRECTORY_CREATE_RESPONSE(path, problems.NO_ERROR);
+        String directory_delete_response = DIRECTORY_DELETE_RESPONSE(path, problems.PATHNAME_NOT_EXIST);
 
+        //System.out.println(handshake_request);
         //followed parts have passed test
         System.out.println("invalid_protocol: ");
         getMessage(invalid_protocol);
