@@ -39,7 +39,7 @@ public class EntryPointServer implements Runnable{
             		System.out.println("accepted client");
             		input.close();
             		output.close();
-            		this.threadPool.execute(new Server(clientSocket, "Thread Pooled Server"));
+            		this.threadPool.execute(new PeerConnection(clientSocket, "Thread Pooled Server"));
             	} else{
             		System.out.println("rejected client");
             		input.close();

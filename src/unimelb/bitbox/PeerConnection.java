@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 
-public class Server implements Runnable{
+public class PeerConnection implements Runnable{
 	
 	private Socket clientSocket = null;
 	private DataInputStream input = null;
@@ -16,7 +16,7 @@ public class Server implements Runnable{
 	
     protected String serverText   = null;
 
-    public Server(Socket clientSocket, String serverText) {
+    public PeerConnection(Socket clientSocket, String serverText) {
         this.clientSocket = clientSocket;
         this.serverText   = serverText;
         

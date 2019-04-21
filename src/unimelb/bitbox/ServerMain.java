@@ -21,7 +21,7 @@ public class ServerMain implements FileSystemObserver {
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
 		// TODO: process events
-		System.out.println("lol");
+		//System.out.println("lol");
 	}
 	
 }
