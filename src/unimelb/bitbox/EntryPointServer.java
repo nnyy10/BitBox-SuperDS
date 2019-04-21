@@ -34,11 +34,9 @@ public class EntryPointServer implements Runnable{
             	DataInputStream input = new DataInputStream(clientSocket.getInputStream());          	
             	DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
             	String s = input.readUTF();
-            	if(s == "handshake"){
+            	if(s.equals("handshake")){
             		output.writeUTF("accepted");
             		System.out.println("accepted client");
-            		input.close();
-            		output.close();
             		this.threadPool.execute(new PeerConnection(clientSocket));
             	} else{
             		System.out.println("rejected client");
