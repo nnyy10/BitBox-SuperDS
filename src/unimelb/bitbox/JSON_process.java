@@ -75,7 +75,7 @@ public class JSON_process {
         //System.out.println(obj);
     }
 
-    private static void fileDescriptor(String md5, String timestamp, long size, String pathName, JSONObject obj) {
+    private static void fileDescriptor(String md5, long timestamp, long size, String pathName, JSONObject obj) {
         obj.put("pathName", pathName);
         JSONObject obj2 = new JSONObject();
         obj2.put("md5", md5);
@@ -85,7 +85,7 @@ public class JSON_process {
         //System.out.println(obj);
     }
 
-    public static String FILE_CREATE_REQUEST(String md5, String timestamp, long size, String path){
+    public static String FILE_CREATE_REQUEST(String md5, long timestamp, long size, String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_CREATE_REQUEST");
         // there should be a blocksize ????
@@ -94,7 +94,7 @@ public class JSON_process {
         return obj.toString();
     }
 
-    public static String FILE_CREATE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
+    public static String FILE_CREATE_RESPONSE(String md5, long timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_CREATE_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -116,7 +116,7 @@ public class JSON_process {
         return obj.toString();
     }
 
-    public static String FILE_BYTES_REQUEST(String md5, String timestamp, long size, String pathName,
+    public static String FILE_BYTES_REQUEST(String md5, long timestamp, long size, String pathName,
                                           int position, int length){
         //needs to call the File System Manager to read the requested bytes and package them into a response message
         JSONObject obj = new JSONObject();
@@ -128,7 +128,7 @@ public class JSON_process {
         //System.out.println(obj);
     }
 
-    public static String FILE_BYTES_RESPONSE(String md5, String timestamp, long size, String path,
+    public static String FILE_BYTES_RESPONSE(String md5, long timestamp, long size, String path,
                                            int position, int length, String content, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_BYTES_RESPONSE");
@@ -150,7 +150,7 @@ public class JSON_process {
         //System.out.println(obj);
     }
 
-    public static String FILE_DELETE_REQUEST(String md5, String timestamp, long size, String path){
+    public static String FILE_DELETE_REQUEST(String md5, long timestamp, long size, String path){
         // there should be another edition for receiving severs
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_REQUEST");
@@ -159,7 +159,7 @@ public class JSON_process {
         //System.out.println(obj);
     }
 
-    public static String FILE_DELETE_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
+    public static String FILE_DELETE_RESPONSE(String md5, long timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -180,7 +180,7 @@ public class JSON_process {
         //System.out.println(obj);
     }
 
-    public static String FILE_MODIFY_REQUEST(String md5, String timestamp, long size, String path){
+    public static String FILE_MODIFY_REQUEST(String md5, long timestamp, long size, String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_MODIFY_REQUEST");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -188,7 +188,7 @@ public class JSON_process {
         //System.out.println(obj);
     }
 
-    public static String FILE_MODIFY_RESPONSE(String md5, String timestamp, long size, String path, problems prob){
+    public static String FILE_MODIFY_RESPONSE(String md5, long timestamp, long size, String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_MODIFY_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -298,9 +298,9 @@ public class JSON_process {
             JSONObject obj = (JSONObject) parser.parse(str);
             // first JSONObject need to be deal with, and then use obj as input
             String information = (String) obj.get("command");
-            String md5 = " ", host = " ", msg = " ", timestamp = " ", pathName = " ";
+            String md5 = " ", host = " ", msg = " ", pathName = " ";
             long size = 0;
-            long port = 0 , position = 0, length = 0;
+            long port = 0 , position = 0, length = 0, timestamp= 0;
             JSONObject fileDescriptor;
             switch (information){
                 case "INVALID_PROTOCOL":
@@ -332,7 +332,7 @@ public class JSON_process {
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     //System.out.println("md5: "+ md5);
-                    timestamp = (String) fileDescriptor.get("lastModified");
+                    timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     break;
@@ -341,7 +341,7 @@ public class JSON_process {
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     //System.out.println("md5: "+ md5);
-                    timestamp = (String) fileDescriptor.get("lastModified");
+                    timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     position = (long) obj.get("position");
@@ -351,7 +351,7 @@ public class JSON_process {
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     //System.out.println("md5: "+ md5);
-                    timestamp = (String) fileDescriptor.get("lastModified");
+                    timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     //position = (int) obj.get("position");
                     pathName = (String) obj.get("pathName");
@@ -359,7 +359,7 @@ public class JSON_process {
                 case "FILE_MODIFY_REQUEST":
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
-                    timestamp = (String) fileDescriptor.get("lastModified");
+                    timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     break;
@@ -420,7 +420,7 @@ public class JSON_process {
             if (position != 0) {
                 System.out.println("position: " + position);
             }
-            if(!timestamp.equals(" ")){
+            if(!timestamp != 0){
                 System.out.println("timestamp: " + timestamp);
             }
             if (!pathName.equals(" ")) {
@@ -441,7 +441,7 @@ public class JSON_process {
         String [] hosts = {" unimelb", "Unimelb"};
         int [] ports = {8111, 8112};
         String md5 = "074195d72c47315efae797b69393e5e5";
-        String timestamp = "1553417607000";
+        long timestamp = 1553417607000L;
         String pathName = "test.jpg";
         int position = 0;
         int length = 6;
