@@ -20,31 +20,4 @@ public class Server extends PeerConnection implements Runnable {
 			e.printStackTrace();
 		}
 	}
-
-	public void run() {
-		String line = ""; 
-        
-        // reads message from client until "Over" is sent 
-        while (!line.equals("Over")) 
-        { 
-            try
-            { 
-                line = inputStream.readUTF(); 
-                System.out.println(line); 
-	        } catch (Exception e) {
-	        	try{
-		        	this.inputStream.close();
-		        	this.outputStream.close();
-		        	this.socket.close();
-		        	break;
-		        } catch(Exception e1){
-		        	
-		        	System.out.println(e1);
-		        }
-	            //report exception somewhere.
-	            e.printStackTrace();
-	        }
-    	}
-
-	}
 }

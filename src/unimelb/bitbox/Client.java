@@ -19,6 +19,7 @@ public class Client extends PeerConnection implements Runnable {
 			outputStream = new DataOutputStream(this.socket.getOutputStream());
 			
 			outputStream.writeUTF("handshake");
+			inputStream.readUTF();
 		} catch (IOException e) {
 			System.out.println("Connection to: FAILED");
 			e.printStackTrace();

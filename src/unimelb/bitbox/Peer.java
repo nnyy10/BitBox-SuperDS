@@ -31,14 +31,14 @@ public class Peer
 //        
 //        new File(Paths.get(System.getProperty("user.home"), "BitBox").toString()).mkdirs();
 //        
-    	EntryPointServer server = new EntryPointServer(900);
-    	new Thread(server).start();
+//    	EntryPointServer server = new EntryPointServer(7000);
+//    	new Thread(server).start();
 
     	//naiyun: "10.13.190.79"
     	//zhouxuan: "10.13.213.104"
     	//
     	
-        Socket sc0 = new Socket("10.13.190.79",900);
+        Socket sc0 = new Socket("10.13.213.184",8080);
         Client c0 = new Client(sc0);
         Thread tr0 = new Thread(c0);
         tr0.start();
