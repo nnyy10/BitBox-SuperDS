@@ -18,13 +18,24 @@ public class ServerMain implements FileSystemObserver {
 	protected FileSystemManager fileSystemManager;
 	private ArrayList<PeerConnection> connections = new ArrayList<>();
 	
-	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
+	private ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
 		System.out.println(Configuration.getConfigurationValue("path"));
 	}
 
-	
-	
+	private static ServerMain Single_instance = null;
+
+	public static ServerMain getInstance()
+	{
+		if (Single_instance == null)
+			try {
+				Single_instance = new ServerMain();
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+		return Single_instance;
+	}
+
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
 		// TODO: process events
@@ -62,7 +73,7 @@ public class ServerMain implements FileSystemObserver {
 		for (PeerConnection connection:connections)
 		{
 
-			}
+		}
 		}
 
 		}

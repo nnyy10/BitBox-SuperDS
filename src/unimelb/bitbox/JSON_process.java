@@ -420,7 +420,7 @@ public class JSON_process {
             if (position != 0) {
                 System.out.println("position: " + position);
             }
-            if(!timestamp != 0){
+            if(timestamp != 0){
                 System.out.println("timestamp: " + timestamp);
             }
             if (!pathName.equals(" ")) {
