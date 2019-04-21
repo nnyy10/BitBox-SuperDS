@@ -14,8 +14,8 @@ public class Server extends PeerConnection implements Runnable {
 	public Server(Socket socket) {
 		super(socket);
 		try {
-			input = new DataInputStream(this.socket.getInputStream());
-			output = new DataOutputStream(this.socket.getOutputStream());
+			inputStream = new DataInputStream(this.socket.getInputStream());
+			outputStream = new DataOutputStream(this.socket.getOutputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -30,12 +30,12 @@ public class Server extends PeerConnection implements Runnable {
             try
             { 
             	System.out.println("hi");
-                line = input.readUTF(); 
+                line = inputStream.readUTF(); 
                 System.out.println(line); 
 	        } catch (Exception e) {
 	        	try{
-		        	this.input.close();
-		        	this.output.close();
+		        	this.inputStream.close();
+		        	this.outputStream.close();
 		        	this.socket.close();
 		        	break;
 		        } catch(Exception e1){
