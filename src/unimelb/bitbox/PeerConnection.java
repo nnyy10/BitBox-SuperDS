@@ -43,9 +43,9 @@ public class PeerConnection implements Runnable{
         while (!line.equals("Over")) 
         { 
             try
-            { 
-                line = inputStream.readUTF(); 
-                System.out.println(line); 
+            { line = inputStream.readUTF();
+                System.out.println(line);
+
 	        } catch (Exception e) {
 	        	this.CloseConnection();
 	        	break;
