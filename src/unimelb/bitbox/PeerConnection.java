@@ -10,19 +10,16 @@ import java.net.Socket;
 
 public class PeerConnection implements Runnable{
 	
-	private Socket clientSocket = null;
-	private DataInputStream input = null;
-	private DataOutputStream output = null;
-	
-    protected String serverText   = null;
+	protected Socket socket = null;
+	protected DataInputStream input = null;
+	protected DataOutputStream output = null;
 
-    public PeerConnection(Socket clientSocket, String serverText) {
-        this.clientSocket = clientSocket;
-        this.serverText   = serverText;
+    public PeerConnection(Socket socket) {
+        this.socket = socket;
         
         try {
-			input  = new DataInputStream(this.clientSocket.getInputStream());
-			output = new DataOutputStream(this.clientSocket.getOutputStream());
+			input  = new DataInputStream(this.socket.getInputStream());
+			output = new DataOutputStream(this.socket.getOutputStream());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -33,7 +30,7 @@ public class PeerConnection implements Runnable{
         try {
 
             long time = System.currentTimeMillis();
-            output.write(("HTTP/1.1 200 OK\n\nWorkerRunnable: " + this.serverText + " - " + time + "").getBytes());
+            output.write(("HTTP/1.1 200 OK\n\nWorkerRunnable: " + " - " + time + "").getBytes());
             output.close();
             input.close();
             System.out.println("Request processed: " + time);
@@ -41,5 +38,9 @@ public class PeerConnection implements Runnable{
             //report exception somewhere.
             e.printStackTrace();
         }
+    }
+    
+    public void send(String message){
+    	
     }
 }
