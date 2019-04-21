@@ -29,7 +29,6 @@ public class Server extends PeerConnection implements Runnable {
         { 
             try
             { 
-            	System.out.println("hi");
                 line = inputStream.readUTF(); 
                 System.out.println(line); 
 	        } catch (Exception e) {
