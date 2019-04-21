@@ -42,6 +42,7 @@ public class ServerMain implements FileSystemObserver {
 			connection.send(toJSON(fileSystemEvent));
 		}
 	}
+
 		public String toJSON(FileSystemEvent fileSystemEvent) {
 			switch (fileSystemEvent.event) {
 				case FILE_CREATE:
@@ -75,7 +76,6 @@ public class ServerMain implements FileSystemObserver {
 			}
 		return "";
 	}
-
       public void add(PeerConnection peerConnection)
 	  {
 	  	if (!connections.contains(peerConnection))
