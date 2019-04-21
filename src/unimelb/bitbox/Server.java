@@ -13,6 +13,7 @@ public class Server extends PeerConnection implements Runnable {
 
 	public Server(Socket socket) {
 		super(socket);
+		
 		try {
 			inputStream = new DataInputStream(this.socket.getInputStream());
 			outputStream = new DataOutputStream(this.socket.getOutputStream());
