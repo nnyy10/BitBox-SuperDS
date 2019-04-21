@@ -11,15 +11,15 @@ import java.net.Socket;
 public class PeerConnection implements Runnable{
 	
 	protected Socket socket = null;
-	protected DataInputStream input = null;
-	protected DataOutputStream output = null;
+	protected DataInputStream inputStream = null;
+	protected DataOutputStream outputStream = null;
 
     public PeerConnection(Socket socket) {
         this.socket = socket;
         
         try {
-			input  = new DataInputStream(this.socket.getInputStream());
-			output = new DataOutputStream(this.socket.getOutputStream());
+        	inputStream  = new DataInputStream(this.socket.getInputStream());
+        	outputStream = new DataOutputStream(this.socket.getOutputStream());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -34,12 +34,12 @@ public class PeerConnection implements Runnable{
         { 
             try
             { 
-                line = input.readUTF(); 
+                line = inputStream.readUTF(); 
                 System.out.println(line); 
 	        } catch (Exception e) {
 	        	try{
-		        	this.input.close();
-		        	this.output.close();
+		        	this.inputStream.close();
+		        	this.outputStream.close();
 		        	this.socket.close();
 		        	break;
 		        } catch(Exception e1){
