@@ -298,10 +298,9 @@ public class JSON_process {
             JSONObject obj = (JSONObject) parser.parse(str);
             // first JSONObject need to be deal with, and then use obj as input
             String information = (String) obj.get("command");
-            String md5 = " ", host = " ", msg = " ", pathName = " ";
-            long size = 0;
-            long port = 0 , position = 0, length = 0, timestamp= 0;
-            JSONObject fileDescriptor;
+            String md5 = " ", host = " ", msg = " ";
+            long port = 0;
+            //JSONObject fileDescriptor;
             switch (information){
                 case "INVALID_PROTOCOL":
                     // something about socket instead of system
@@ -323,6 +322,82 @@ public class JSON_process {
                         System.out.println("port: " + sub_port);
                     }
                     break;
+                case "HANDSHAKE_RESPONSE":
+                    JSONObject hostPort1 = (JSONObject) obj.get("hostPort");
+                    host = (String) hostPort1.get("host");
+                    port = (long) hostPort1.get("port");
+                    if(!host.equals(" ")){
+                        System.out.println("host: " + host);
+                    }
+                    if (port != 0) {
+                        System.out.println("port:" + port);
+                    }
+                    break;
+                case "FILE_CREATE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "FILE_BYTES_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "FILE_DELETE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "FILE_MODIFY_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "DIRECTORY_CREATE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+                case "DIRECTORY_DELETE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    System.out.println(msg);
+                    break;
+
+            }
+            /*
+            if (!md5.equals(" ")) {
+                System.out.println("md5: " + md5);
+            }
+            if (position != 0) {
+                System.out.println("position: " + position);
+            }
+            if (timestamp != 0){
+                System.out.println("timestamp: " + timestamp);
+            }
+            if (!pathName.equals(" ")) {
+                System.out.println("pathName: " + pathName);
+            }
+            if (size != 0) {
+                System.out.println("size: " + size);
+            }
+            if (length != 0) {
+                System.out.println("length: " + length);
+            }*/
+        }catch (Exception e){
+
+            JSONObject obj = null;
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public static void getInformation(String str){
+        JSONParser parser = new JSONParser();
+        try {
+            String md5 = " ", host = " ", msg = " ", pathName = " ";
+            long size = 0;
+            long port = 0 , position = 0, length = 0, timestamp= 0;
+            JSONObject obj = (JSONObject) parser.parse(str);
+            // first JSONObject need to be deal with, and then use obj as input
+            String information = (String) obj.get("command");
+            JSONObject fileDescriptor;
+            switch (information){
                 case "HANDSHAKE_REQUEST":
                     JSONObject hostPort = (JSONObject) obj.get("hostPort");
                     host = (String) hostPort.get("host");
@@ -337,10 +412,10 @@ public class JSON_process {
                     pathName = (String) obj.get("pathName");
                     break;
                 case "FILE_BYTES_REQUEST":
-                    //do switch case work or do i need write in different functions
+                     //do switch case work or do i need write in different functions
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
-                    //System.out.println("md5: "+ md5);
+                     //System.out.println("md5: "+ md5);
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
@@ -369,47 +444,9 @@ public class JSON_process {
                 case "DIRECTORY_DELETE_REQUEST":
                     pathName = (String) obj.get("pathName");
                     break;
-
-
-                case "HANDSHAKE_RESPONSE":
-                    JSONObject hostPort1 = (JSONObject) obj.get("hostPort");
-                    host = (String) hostPort1.get("host");
-                    port = (long) hostPort1.get("port");
-                    break;
-                case "FILE_CREATE_RESPONSE":
-                    msg = (String) obj.get("message");
-                    System.out.println(msg);
-                    break;
-                case "FILE_BYTES_RESPONSE":
-                    msg = (String) obj.get("message");
-                    System.out.println(msg);
-                    break;
-                case "FILE_DELETE_RESPONSE":
-                    msg = (String) obj.get("message");
-                    System.out.println(msg);
-                    break;
-                case "FILE_MODIFY_RESPONSE":
-                    msg = (String) obj.get("message");
-                    System.out.println(msg);
-                    break;
-                case "DIRECTORY_CREATE_RESPONSE":
-                    msg = (String) obj.get("message");
-                    System.out.println(msg);
-                    break;
-                case "DIRECTORY_DELETE_RESPONSE":
-                    msg = (String) obj.get("message");
-                    System.out.println(msg);
-                    break;
-
             }
             if(!host.equals(" ")){
                 System.out.println("host: " + host);
-            }
-            if (size != 0) {
-                System.out.println("size: " + size);
-            }
-            if (length != 0) {
-                System.out.println("length: " + length);
             }
             if (port != 0) {
                 System.out.println("port:" + port);
@@ -426,14 +463,19 @@ public class JSON_process {
             if (!pathName.equals(" ")) {
                 System.out.println("pathName: " + pathName);
             }
+            if (size != 0) {
+                System.out.println("size: " + size);
+            }
+            if (length != 0) {
+                System.out.println("length: " + length);
+            }
         }catch (Exception e){
 
             JSONObject obj = null;
             e.printStackTrace();
         }
-
-
     }
+
 
 
     public static void main(String [] args){
@@ -473,62 +515,36 @@ public class JSON_process {
         getMessage(invalid_protocol);
         System.out.println("connection_refused: ");
         getMessage(connection_refused);
-        System.out.println("handshake_request: ");
-        getMessage(handshake_request);
         System.out.println("handshake_response: ");
         getMessage(handshake_response);
         System.out.println("file_create_response: ");
         getMessage(file_create_response);
-        System.out.println("file_create_request: ");
-        getMessage(file_create_request);
-        System.out.println("file_bytes_request: ");
-        getMessage(file_bytes_request);
         System.out.println("file_bytes_response: ");
         getMessage(file_bytes_response);
-        System.out.println("file_delete_request: ");
-        getMessage(file_delete_request);
         System.out.println("file_delete_response: ");
         getMessage(file_delete_response);
-        System.out.println("file_modify_request: ");
-        getMessage(file_modify_request);
         System.out.println("file_modify_response: ");
         getMessage(file_modify_response);
-        System.out.println("directory_create_request: ");
-        getMessage(directory_create_request);
-        System.out.println("directory_delete_request: ");
-        getMessage(directory_delete_request);
         System.out.println("directory_create_response: ");
         getMessage(directory_create_response);
         System.out.println("directory_delete_response: ");
         getMessage(directory_delete_response);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        System.out.println("handshake_request: ");
+        getInformation(handshake_request);
+        System.out.println("file_create_request: ");
+        getInformation(file_create_request);
+        System.out.println("file_bytes_request: ");
+        getInformation(file_bytes_request);
+        System.out.println("file_delete_request: ");
+        getInformation(file_delete_request);
+        System.out.println("file_modify_request: ");
+        getInformation(file_modify_request);
+        System.out.println("directory_create_request: ");
+        getInformation(directory_create_request);
+        System.out.println("directory_delete_request: ");
+        getInformation(directory_delete_request);
 
     }
 }

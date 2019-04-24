@@ -42,8 +42,7 @@ public class PeerConnection implements Runnable{
 	}
 	
     public void run() {
-        String line = ""; 
-        
+        String line = "";
         // reads message from client until "Over" is sent 
         while (true) 
         {
