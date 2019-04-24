@@ -1,7 +1,11 @@
 package unimelb.bitbox;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,16 +15,16 @@ import java.net.Socket;
 public class PeerConnection implements Runnable{
 	
 	protected Socket socket = null;
-	protected DataInputStream inputStream = null;
-	protected DataOutputStream outputStream = null;
+	protected BufferedReader inputStream = null;
+	protected BufferedWriter outputStream = null;
 	protected ServerMain fileSystemObserver = null;
 	
     public PeerConnection(Socket socket) {
         this.socket = socket;
-
+        this.fileSystemObserver = ServerMain.getInstance();
         try {
-        	inputStream  = new DataInputStream(this.socket.getInputStream());
-        	outputStream = new DataOutputStream(this.socket.getOutputStream());
+        	inputStream  = new BufferedReader(new InputStreamReader(this.socket.getInputStream(), "UTF-8"));
+        	outputStream = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream(), "UTF-8"));
 		} catch (IOException e) {
 			this.CloseConnection();
 		}
@@ -41,12 +45,12 @@ public class PeerConnection implements Runnable{
         String line = ""; 
         
         // reads message from client until "Over" is sent 
-        while (!line.equals("Over")) 
-        { 
+        while (true) 
+        {
             try
-            { 
-                line = inputStream.readUTF(); 
-                System.out.println(line); 
+            {
+                line = inputStream.readLine();
+                System.out.println(line);
 	        } catch (Exception e) {
 	        	this.CloseConnection();
 	        	break;
@@ -56,7 +60,8 @@ public class PeerConnection implements Runnable{
     
     public void send(String message){
     	try{
-    		outputStream.writeUTF(message);
+    		outputStream.write(message+"\n");
+    		outputStream.flush();
     	} catch(Exception e){
     		System.out.println("cant print " + message);
     		this.CloseConnection();

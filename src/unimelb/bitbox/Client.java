@@ -13,13 +13,13 @@ public class Client extends PeerConnection implements Runnable {
 
 	public Client(Socket socket) {
 		super(socket);
+		this.fileSystemObserver.add(this);
 		try {
 
-			inputStream = new DataInputStream(System.in);
-			outputStream = new DataOutputStream(this.socket.getOutputStream());
-
-			outputStream.writeUTF("handshake");
-			inputStream.readUTF();
+			outputStream.write("handshake"+"\n");
+			outputStream.flush();
+			System.out.println(inputStream.readLine());
+			this.fileSystemObserver.add(this);
 			//outputStream.writeUTF(JSON_process.HANDSHAKE_REQUEST());
 			//String response =inputStream.readUTF();
 			//JSON_process.getMessage(response);
@@ -27,34 +27,8 @@ public class Client extends PeerConnection implements Runnable {
 			System.out.println("Connection to: FAILED");
 			e.printStackTrace();
 		}
+		System.out.println("client successfully connected to " + socket.getRemoteSocketAddress().toString() + Integer.toString(socket.getPort()));
+	
 	}
 
-	public void run() {
-// string to read message from input
-		String line = "";
-
-		// keep reading until "Over" is input
-		while (!line.equals("Over"))
-		{
-			try
-			{
-				line = inputStream.readLine();
-				outputStream.writeUTF(line);
-
-		} catch (IOException i) {
-	        	try{
-		        	this.inputStream.close();
-		        	this.outputStream.close();
-		        	this.socket.close();
-		        	break;
-		        } catch(Exception e1){
-		        	
-		        	System.out.println(e1);
-		        }
-	            //report exception somewhere.
-	            i.printStackTrace();
-			}
-		}
-
-	}
 }

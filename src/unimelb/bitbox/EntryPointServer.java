@@ -2,9 +2,13 @@ package unimelb.bitbox;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,14 +35,16 @@ public class EntryPointServer implements Runnable{
             Socket clientSocket = null;
             try {
                 clientSocket = this.serverSocket.accept();
-            	DataInputStream input = new DataInputStream(clientSocket.getInputStream());          	
-            	DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
-            	String s = input.readUTF();
+            	BufferedReader input  = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
+            	BufferedWriter output = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
+            	String s = input.readLine();
+            	System.out.println(s);
             	if(s.equals("handshake")){
-            		output.writeUTF("accepted");
+            		output.write("accepted"+"\n");
+            		output.flush();
             		System.out.println("accepted client");
             		this.threadPool.execute(new Server(clientSocket));
-            	} else{
+            	} else {
             		System.out.println("rejected client");
             		input.close();
             		output.close();

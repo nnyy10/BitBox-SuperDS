@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.logging.SocketHandler;
 
@@ -31,16 +32,29 @@ public class Peer
 //        
 //        new File(Paths.get(System.getProperty("user.home"), "BitBox").toString()).mkdirs();
 //        
-//    	EntryPointServer server = new EntryPointServer(7000);
+//    	EntryPointServer server = new EntryPointServer(80);
 //    	new Thread(server).start();
 
     	//naiyun: "10.13.190.79"
     	//zhouxuan: "10.13.213.104"
     	//
+    	Scanner sc = new Scanner(System.in);
+    	String s = sc.nextLine();
     	
-        Socket sc0 = new Socket("10.13.213.184",8080);
-        Client c0 = new Client(sc0);
-        Thread tr0 = new Thread(c0);
-        tr0.start();
+    	if(s.equals("client")){
+    		try{
+    			System.out.println("starting client");
+	    		Socket sc0 = new Socket("localhost",8000);
+	        	Client c0 = new Client(sc0);
+	        	Thread tr0 = new Thread(c0);
+	        	tr0.start();
+    		} catch(Exception e){
+    			e.printStackTrace();
+    		}
+    	}else if(s.equals("server")){
+    		System.out.println("starting server");
+        	EntryPointServer server = new EntryPointServer(8000);
+        	new Thread(server).start();
+    	}
     }
 }
