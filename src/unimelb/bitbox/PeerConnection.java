@@ -101,28 +101,27 @@ public class PeerConnection implements Runnable{
 
 				case "FILE_CREATE_REQUEST":
 					if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName))
-					{	if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)){
-							try{
-							 if(this.fileSystemObserver.fileSystemManager.createFileLoader(pathName,md5,size,timestamp));
+					{	if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
+						{ try{
+							 if(this.fileSystemObserver.fileSystemManager.createFileLoader(pathName,md5,size,timestamp))
 								{if(this.fileSystemObserver.fileSystemManager.checkShortcut(pathName))
-									{
-										send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length));
-									}
-
-								}
-							send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_EXISTS));}
-							catch (Exception e){e.printStackTrace();}
-//								try{
-//								String temp[]=pathName.split("\\\\");
-//								String prefix=temp[temp.length-1];
-//								String[] strArray = pathName.split("\\.");
-//								int suffixIndex = strArray.length -1;
-//								String suffix=strArray[suffixIndex];
-//								File.createTempFile(prefix,suffix);
-//								}catch(Exception e){e.printStackTrace();}
-
-							} else { send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_EXISTS));}}
+									{send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length)); }
+								}}
+						 catch (Exception e){e.printStackTrace();}
+						}
+						 else { send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_EXISTS));}}
  					else{send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.UNSAFE_PATH));}
+
+//
+// 				case "FILE_BYTES_RESPONSE":
+// 					if(this.fileSystemObserver.fileSystemManager.writeFile(pathName,00000,position))
+//					{
+//						if(!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName))
+//						{
+//							send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length));
+//						}
+//					}
+
 
 
 
@@ -139,27 +138,18 @@ public class PeerConnection implements Runnable{
 
 
 				case "FILE_MODIFY_REQUEST":
-					File local_file = new File(pathName);
-					try{
 					if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName))
-					{if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
-						{
-						this.fileSystemObserver.fileSystemManager.createFileLoader(pathName,md5,size,timestamp);
-						if(timestamp>=local_file.length())
-						//protocol
-						{
-						this.fileSystemObserver.fileSystemManager.readFile(md5,position,size);
-						this.fileSystemObserver.fileSystemManager.checkShortcut(pathName);
-						this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,size);
-//						this.fileSystemObserver.fileSystemManager.writeFile(pathName,src,position);
-						if (this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName))
-								{
-									this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-								}
-							}
-						}
-					} }
+					{	if(this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
+					{ try{this.fileSystemObserver.fileSystemManager.deleteFile(pathName,timestamp,md5);
+						if(this.fileSystemObserver.fileSystemManager.createFileLoader(pathName,md5,size,timestamp))
+						{if(this.fileSystemObserver.fileSystemManager.checkShortcut(pathName))
+						{send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length)); }
+						}}
 					catch (Exception e){e.printStackTrace();}
+					}
+					else { send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_NOT_EXIST));}}
+					else{send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.UNSAFE_PATH));}
+
 
 
 				case "DIRECTORY_DELETE_REQUEST":
@@ -183,3 +173,12 @@ public class PeerConnection implements Runnable{
 		}catch(Exception e){e.printStackTrace();}
     }
 }
+
+
+
+//								String temp[]=pathName.split("\\\\");
+//								String prefix=temp[temp.length-1];
+//								String[] strArray = pathName.split("\\.");
+//								int suffixIndex = strArray.length -1;
+//								String suffix=strArray[suffixIndex];
+//								File.createTempFile(prefix,suffix);
