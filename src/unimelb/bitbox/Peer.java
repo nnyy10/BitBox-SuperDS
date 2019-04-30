@@ -22,39 +22,34 @@ public class Peer
     public static void main( String[] args ) throws IOException, NumberFormatException, NoSuchAlgorithmException
     {	
 
-//    	
-//
-//    	System.setProperty("java.util.logging.SimpleFormatter.format",
-//                "[%1$tc] %2$s %4$s: %5$s%n");
-//        log.info("BitBox Peer starting...");
-//        
-//        log.info(System.getProperty("user.home"));
-//        
-//        new File(Paths.get(System.getProperty("user.home"), "BitBox").toString()).mkdirs();
-//        
-//    	EntryPointServer server = new EntryPointServer(80);
-//    	new Thread(server).start();
-
-    	//naiyun: "10.13.190.79"
-    	//zhouxuan: "10.13.213.104"
-    	//
-    	Scanner sc = new Scanner(System.in);
-    	String s = sc.nextLine();
     	
-    	if(s.equals("client")){
-    		try{
-    			System.out.println("starting client");
-	    		Socket sc0 = new Socket("localhost",8000);
-	        	Client c0 = new Client(sc0);
-	        	Thread tr0 = new Thread(c0);
-	        	tr0.start();
-    		} catch(Exception e){
-    			e.printStackTrace();
-    		}
-    	}else if(s.equals("server")){
-    		System.out.println("starting server");
-        	EntryPointServer server = new EntryPointServer(8000);
-        	new Thread(server).start();
-    	}
+    	System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tc] %2$s %4$s: %5$s%n");
+        log.info("BitBox Peer starting...");
+        Configuration.getConfiguration();
+        
+        String port_string = Configuration.getConfigurationValue("port").replaceAll("\\s+","");
+        String ip_addr = Configuration.getConfigurationValue("advertisedName").replaceAll("\\s+","");
+        String all_peers = Configuration.getConfigurationValue("peers").replaceAll("\\s+","");
+        String[] array_of_peers = all_peers.split(","); 
+        
+        int port = Integer.parseInt(port_string);
+		System.out.println("starting server");
+    	EntryPointServer server = new EntryPointServer(port);
+    	new Thread(server).start();
+        
+        String[] peer_pair;
+        Socket outGoingSocket = null;
+        Client outGoingConnection = null;
+        Thread connectionThread = null; 
+        for (String peer_string : array_of_peers) {
+			System.out.println("starting client");
+			peer_pair = peer_string.split(":");
+			System.out.println(peer_pair[0]);
+			System.out.println(peer_pair[1]);
+    		outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
+        	outGoingConnection = new Client(outGoingSocket);
+        	connectionThread = new Thread(outGoingConnection);
+        	connectionThread.start();
+        }
     }
 }
