@@ -17,7 +17,7 @@ public class Client extends PeerConnection implements Runnable {
 		
 		try {
 
-			Cmesg=JSON_process.HANDSHAKE_REQUEST(this.socket.getLocalAddress().toString(), 7000);
+			Cmesg=JSON_process.HANDSHAKE_REQUEST(this.socket.getLocalAddress().toString(), this.socket.getLocalPort());
 	
 			outputStream.write(Cmesg+"\n");
 			outputStream.flush();
@@ -33,19 +33,3 @@ public class Client extends PeerConnection implements Runnable {
 	}
 
 }
-
-
-
-
-
-/*
-
-outputStream.write("handshake"+"\n");
-outputStream.flush();
-System.out.println(inputStream.readLine());
-this.fileSystemObserver.add(this);
-//outputStream.writeUTF(JSON_process.HANDSHAKE_REQUEST());
-//String response =inputStream.readUTF();
-//JSON_process.getMessage(response);
-
-*/

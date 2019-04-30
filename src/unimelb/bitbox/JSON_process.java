@@ -35,14 +35,7 @@ public class JSON_process {
             obj2.put("port", port[i]);
             list.add(obj2);
         }
-        /*JSONObject obj2 = new JSONObject();
-        obj2.put("host", host);
-        obj2.put("port", port);
-        JSONObject obj3 = new JSONObject();
-        obj3.put("host", host);
-        obj3.put("port", port);
-        list.add(obj2);
-        list.add(obj3);*/
+       
 
         obj.put("peers", list);
         //System.out.println(obj);
