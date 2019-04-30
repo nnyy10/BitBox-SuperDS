@@ -11,6 +11,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+import unimelb.bitbox.util.FileSystemManager;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
+
 
 public class PeerConnection implements Runnable{
 	
@@ -20,6 +23,7 @@ public class PeerConnection implements Runnable{
 	protected ServerMain fileSystemObserver = null;
 	
     public PeerConnection(Socket socket) {
+
         this.socket = socket;
         this.fileSystemObserver = ServerMain.getInstance();
         try {
