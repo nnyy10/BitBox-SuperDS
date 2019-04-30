@@ -48,22 +48,22 @@ public class EntryPointServer implements Runnable{
             	BufferedReader input  = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
             	BufferedWriter output = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
             	readmesg = input.readLine();
-            	System.out.println(readmesg);
-            	
+            	//System.out.println(readmesg);
             //	JSON_process.HANDSHAKE_RESPONSE("localhost", 7000)
             	
             	
             	if(ThreadCount<=10) {
             		JSONParser parser = new JSONParser();
             		long port;
-            		try {
-                    JSONObject obj = (JSONObject) parser.parse(readmesg);
-                    JSONObject hostPort = (JSONObject) obj.get("hostPort");
-                    host = (String) hostPort.get("host");
-                    port = (long) hostPort.get("port");
-            		}catch (Exception e){
-            			JSONObject obj = null;
-            			e.printStackTrace();
+                    String mesg=JSON_process.HANDSHAKE_RESPONSE(clientSocket.toString(), clientSocket.getPort());
+                    try{
+                		output.write(mesg+"\n");
+                		output.flush();
+                		System.out.println(mesg);
+                	} catch(Exception e){
+                		System.out.println("cant print " + mesg);
+                		clientSocket.close();
+                   
             		}
             		ThreadCount++;
             		
