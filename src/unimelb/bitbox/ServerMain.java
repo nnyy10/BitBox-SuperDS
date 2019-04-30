@@ -16,7 +16,7 @@ public class ServerMain implements FileSystemObserver {
 	private ArrayList<PeerConnection> connections = new ArrayList<>();
 
 	private ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
-		fileSystemManager = new FileSystemManager(Configuration.getConfigurationValue("path"), this);
+		fileSystemManager = new FileSystemManager(Configuration.getConfigurationValue("path").trim(), this);
 	}
 
 	private static ServerMain Single_instance = null;
