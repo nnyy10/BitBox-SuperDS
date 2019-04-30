@@ -15,6 +15,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
@@ -52,13 +53,13 @@ public class PeerConnection implements Runnable{
 	
     public void run() {
         String line = "";
-		FileSystemManager.FileSystemEvent file_event;
         // reads message from client until "Over" is sent 
         while (true) 
         {
             try
             {
                 line = inputStream.readLine();
+                implement(line);
 //				send(JSON_process.getInformation(line));
 	        } catch (Exception e) {
 	        	this.CloseConnection();
@@ -77,11 +78,11 @@ public class PeerConnection implements Runnable{
     	}
     	
     }
-	public void implement(String str, FileSystemManager.FileSystemEvent fileSystemEvent) {
+	public void implement(String str) {
 		JSONParser parser = new JSONParser();
 
 		try {
-			String md5 = " ", host = " ", msg = " ", pathName = " ";
+			String md5 = " ", host = " ", msg = " ", pathName = " ", content = " ";
 			long size = 0;
 			long port = 0, position = 0, length = 0, timestamp = 0;
 			JSONObject obj = (JSONObject) parser.parse(str);
@@ -95,35 +96,35 @@ public class PeerConnection implements Runnable{
 			timestamp = (long) fileDescriptor.get("lastModified");
 			size = (long) fileDescriptor.get("fileSize");
 			pathName = (String) obj.get("pathName");
+			content = (String) obj.get("content");
+
 
 
 			switch (information) {
 
 				case "FILE_CREATE_REQUEST":
 					if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName))
-					{	if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)){
-							try{
-							 if(this.fileSystemObserver.fileSystemManager.createFileLoader(pathName,md5,size,timestamp));
+					{	if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
+						{ try{
+							 if(this.fileSystemObserver.fileSystemManager.createFileLoader(pathName,md5,size,timestamp))
 								{if(this.fileSystemObserver.fileSystemManager.checkShortcut(pathName))
-									{
-										send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length));
-									}
-
-								}
-							send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_EXISTS));}
-							catch (Exception e){e.printStackTrace();}
-//								try{
-//								String temp[]=pathName.split("\\\\");
-//								String prefix=temp[temp.length-1];
-//								String[] strArray = pathName.split("\\.");
-//								int suffixIndex = strArray.length -1;
-//								String suffix=strArray[suffixIndex];
-//								File.createTempFile(prefix,suffix);
-//								}catch(Exception e){e.printStackTrace();}
-
-							} else { send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_EXISTS));}}
+									{send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length)); }
+								}}
+						 catch (Exception e){e.printStackTrace();}
+						}
+						 else { send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_EXISTS));}}
  					else{send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.UNSAFE_PATH));}
 
+
+ 				case "FILE_BYTES_RESPONSE":
+					ByteBuffer src = ByteBuffer.wrap(content.getBytes());
+ 					if(this.fileSystemObserver.fileSystemManager.writeFile(pathName,src,position))
+					{
+						if(!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName))
+						{
+							send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length));
+						}
+					}
 
 
 				case "FILE_DELETE_REQUEST":
@@ -136,30 +137,19 @@ public class PeerConnection implements Runnable{
 
 
 
-
-
 				case "FILE_MODIFY_REQUEST":
-					File local_file = new File(pathName);
-					try{
 					if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName))
-					{if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
-						{
-						this.fileSystemObserver.fileSystemManager.createFileLoader(pathName,md5,size,timestamp);
-						if(timestamp>=local_file.length())
-						//protocol
-						{
-						this.fileSystemObserver.fileSystemManager.readFile(md5,position,size);
-						this.fileSystemObserver.fileSystemManager.checkShortcut(pathName);
-						this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,size);
-//						this.fileSystemObserver.fileSystemManager.writeFile(pathName,src,position);
-						if (this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName))
-								{
-									this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-								}
-							}
-						}
-					} }
+					{	if(this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
+					{ try{this.fileSystemObserver.fileSystemManager.deleteFile(pathName,timestamp,md5);
+						if(this.fileSystemObserver.fileSystemManager.createFileLoader(pathName,md5,size,timestamp))
+						{if(this.fileSystemObserver.fileSystemManager.checkShortcut(pathName))
+						{send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length)); }
+						}}
 					catch (Exception e){e.printStackTrace();}
+					}
+					else { send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_NOT_EXIST));}}
+					else{send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.UNSAFE_PATH));}
+
 
 
 				case "DIRECTORY_DELETE_REQUEST":
@@ -183,3 +173,12 @@ public class PeerConnection implements Runnable{
 		}catch(Exception e){e.printStackTrace();}
     }
 }
+
+
+
+//								String temp[]=pathName.split("\\\\");
+//								String prefix=temp[temp.length-1];
+//								String[] strArray = pathName.split("\\.");
+//								int suffixIndex = strArray.length -1;
+//								String suffix=strArray[suffixIndex];
+//								File.createTempFile(prefix,suffix);
