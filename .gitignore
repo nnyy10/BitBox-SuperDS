@@ -4,3 +4,4 @@ bin/*
 bitbox.iml
 classes/*
 configuration.properties
+/bin/

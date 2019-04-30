@@ -10,19 +10,20 @@ import unimelb.bitbox.JSON_process;
 
 
 public class Client extends PeerConnection implements Runnable {
-
+	String Cmesg;
 	public Client(Socket socket) {
 		super(socket);
 		this.fileSystemObserver.add(this);
+		
 		try {
 
-			outputStream.write("handshake"+"\n");
+			Cmesg=JSON_process.HANDSHAKE_REQUEST(this.socket.getLocalAddress().toString(), 7000);
+	
+			outputStream.write(Cmesg+"\n");
 			outputStream.flush();
+			
 			System.out.println(inputStream.readLine());
 			this.fileSystemObserver.add(this);
-			//outputStream.writeUTF(JSON_process.HANDSHAKE_REQUEST());
-			//String response =inputStream.readUTF();
-			//JSON_process.getMessage(response);
 		} catch (IOException e) {
 			System.out.println("Connection to: FAILED");
 			e.printStackTrace();
@@ -32,3 +33,19 @@ public class Client extends PeerConnection implements Runnable {
 	}
 
 }
+
+
+
+
+
+/*
+
+outputStream.write("handshake"+"\n");
+outputStream.flush();
+System.out.println(inputStream.readLine());
+this.fileSystemObserver.add(this);
+//outputStream.writeUTF(JSON_process.HANDSHAKE_REQUEST());
+//String response =inputStream.readUTF();
+//JSON_process.getMessage(response);
+
+*/

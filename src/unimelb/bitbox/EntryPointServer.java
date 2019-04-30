@@ -12,6 +12,10 @@ import java.io.OutputStreamWriter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 public class EntryPointServer implements Runnable{
 
     protected int serverPort = 0;
@@ -19,6 +23,11 @@ public class EntryPointServer implements Runnable{
     protected boolean isStopped     = false;
     protected Thread runningThread = null;
     private int ThreadCount = 0;
+    
+    //Variables for reading JSON messages
+    String Smesg,readmesg,host; long port;
+    
+    
     
     protected ExecutorService threadPool =Executors.newFixedThreadPool(10);
 
@@ -37,9 +46,36 @@ public class EntryPointServer implements Runnable{
                 clientSocket = this.serverSocket.accept();
             	BufferedReader input  = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
             	BufferedWriter output = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
-            	String s = input.readLine();
-            	System.out.println(s);
-            	if(s.equals("handshake")){
+            	readmesg = input.readLine();
+            	System.out.println(readmesg);
+            	
+            //	JSON_process.HANDSHAKE_RESPONSE("localhost", 7000)
+            	
+            	
+            	if(ThreadCount<=10) {
+            		JSONParser parser = new JSONParser();
+            		long port;
+            		try {
+                    JSONObject obj = (JSONObject) parser.parse(readmesg);
+                    JSONObject hostPort = (JSONObject) obj.get("hostPort");
+                    host = (String) hostPort.get("host");
+                    port = (long) hostPort.get("port");
+            		}catch (Exception e){
+            			JSONObject obj = null;
+            			e.printStackTrace();
+            		}
+            		ThreadCount++;
+            		
+            	} 	
+            	else {
+            		JSON_process.CONNECTION_REFUSED(clientSocket.getInetAddress(), clientSocket.getPort(), );
+            	}
+            	
+            	
+            	
+           
+        
+            	if("str"==readmesg){
             		output.write("accepted"+"\n");
             		output.flush();
             		System.out.println("accepted client");
@@ -49,7 +85,7 @@ public class EntryPointServer implements Runnable{
             		input.close();
             		output.close();
             		clientSocket.close();
-            	}
+            	} 
             } catch (IOException e) {
                 if(isStopped()) {
                     System.out.println("Server Stopped.") ;
@@ -83,5 +119,5 @@ public class EntryPointServer implements Runnable{
         } catch (IOException e) {
             throw new RuntimeException("Cannot open port " + Integer.toString(this.serverPort), e);
         }
-    }
+    } 
 }

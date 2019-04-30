@@ -51,8 +51,8 @@ public class JSON_process {
     public static String HANDSHAKE_REQUEST(String host, int port) {
         JSONObject obj = new JSONObject();
         obj.put("command", "HANDSHAKE_REQUEST");
-        //obj.put("host", host);
-        //obj.put("port", port);
+        															//obj.put("host", host);
+        															//obj.put("port", port);
         JSONObject obj2 = hostPort(host, port);
         obj.put("hostPort", obj2);
         return obj.toString();
