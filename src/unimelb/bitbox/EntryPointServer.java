@@ -79,25 +79,7 @@ public class EntryPointServer implements Runnable{
             			i++;
             		}
             		JSON_process.CONNECTION_REFUSED(tempIPlist, tempPrlist);
-            		
-            		
             	}
-            	
-            	
-            	
-           
-        
-            	if("str"==readmesg){
-            		output.write("accepted"+"\n");
-            		output.flush();
-            		System.out.println("accepted client");
-            		this.threadPool.execute(new Server(clientSocket));
-            	} else {
-            		System.out.println("rejected client");
-            		input.close();
-            		output.close();
-            		clientSocket.close();
-            	} 
             } catch (IOException e) {
                 if(isStopped()) {
                     System.out.println("Server Stopped.") ;
