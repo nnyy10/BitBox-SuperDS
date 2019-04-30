@@ -15,6 +15,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
@@ -52,13 +53,13 @@ public class PeerConnection implements Runnable{
 	
     public void run() {
         String line = "";
-		FileSystemManager.FileSystemEvent file_event;
         // reads message from client until "Over" is sent 
         while (true) 
         {
             try
             {
                 line = inputStream.readLine();
+                implement(line);
 //				send(JSON_process.getInformation(line));
 	        } catch (Exception e) {
 	        	this.CloseConnection();
@@ -77,11 +78,11 @@ public class PeerConnection implements Runnable{
     	}
     	
     }
-	public void implement(String str, FileSystemManager.FileSystemEvent fileSystemEvent) {
+	public void implement(String str) {
 		JSONParser parser = new JSONParser();
 
 		try {
-			String md5 = " ", host = " ", msg = " ", pathName = " ";
+			String md5 = " ", host = " ", msg = " ", pathName = " ", content = " ";
 			long size = 0;
 			long port = 0, position = 0, length = 0, timestamp = 0;
 			JSONObject obj = (JSONObject) parser.parse(str);
@@ -95,6 +96,8 @@ public class PeerConnection implements Runnable{
 			timestamp = (long) fileDescriptor.get("lastModified");
 			size = (long) fileDescriptor.get("fileSize");
 			pathName = (String) obj.get("pathName");
+			content = (String) obj.get("content");
+
 
 
 			switch (information) {
@@ -112,17 +115,16 @@ public class PeerConnection implements Runnable{
 						 else { send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_EXISTS));}}
  					else{send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.UNSAFE_PATH));}
 
-//
-// 				case "FILE_BYTES_RESPONSE":
-// 					if(this.fileSystemObserver.fileSystemManager.writeFile(pathName,00000,position))
-//					{
-//						if(!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName))
-//						{
-//							send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length));
-//						}
-//					}
 
-
+ 				case "FILE_BYTES_RESPONSE":
+					ByteBuffer src = ByteBuffer.wrap(content.getBytes());
+ 					if(this.fileSystemObserver.fileSystemManager.writeFile(pathName,src,position))
+					{
+						if(!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName))
+						{
+							send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length));
+						}
+					}
 
 
 				case "FILE_DELETE_REQUEST":
@@ -132,8 +134,6 @@ public class PeerConnection implements Runnable{
 							this.fileSystemObserver.fileSystemManager.deleteFile(pathName,timestamp,md5);
 						}
 						}
-
-
 
 
 
