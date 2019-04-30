@@ -76,4 +76,8 @@ public class ServerMain implements FileSystemObserver {
 		if (connections.contains(peerConnection))
 			this.connections.remove(peerConnection);
 	}
+	
+	public  ArrayList<PeerConnection> getlist() {
+		return connections;
+	}
 }

@@ -9,6 +9,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,45 +48,38 @@ public class EntryPointServer implements Runnable{
             	BufferedReader input  = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
             	BufferedWriter output = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), "UTF-8"));
             	readmesg = input.readLine();
-            	System.out.println(readmesg);
-            	
+            	//System.out.println(readmesg);
             //	JSON_process.HANDSHAKE_RESPONSE("localhost", 7000)
             	
             	
             	if(ThreadCount<=10) {
             		JSONParser parser = new JSONParser();
             		long port;
-            		try {
-                    JSONObject obj = (JSONObject) parser.parse(readmesg);
-                    JSONObject hostPort = (JSONObject) obj.get("hostPort");
-                    host = (String) hostPort.get("host");
-                    port = (long) hostPort.get("port");
-            		}catch (Exception e){
-            			JSONObject obj = null;
-            			e.printStackTrace();
+                    String mesg=JSON_process.HANDSHAKE_RESPONSE(clientSocket.toString(), clientSocket.getPort());
+                    try{
+                		output.write(mesg+"\n");
+                		output.flush();
+                		System.out.println(mesg);
+                	} catch(Exception e){
+                		System.out.println("cant print " + mesg);
+                		clientSocket.close();
+                   
             		}
             		ThreadCount++;
             		
             	} 	
             	else {
-            		JSON_process.CONNECTION_REFUSED(clientSocket.getInetAddress(), clientSocket.getPort(), );
+            		int i = 0;
+            		String [] tempIPlist = new String[ServerMain.getInstance().getlist().size()];
+            		int [] tempPrlist = new int [tempIPlist.length];
+            		for(PeerConnection pc: ServerMain.getInstance().getlist()) {
+            			
+            			tempIPlist[i]=(pc.socket.getRemoteSocketAddress().toString());
+            			tempPrlist[i]=(pc.socket.getPort());
+            			i++;
+            		}
+            		JSON_process.CONNECTION_REFUSED(tempIPlist, tempPrlist);
             	}
-            	
-            	
-            	
-           
-        
-            	if("str"==readmesg){
-            		output.write("accepted"+"\n");
-            		output.flush();
-            		System.out.println("accepted client");
-            		this.threadPool.execute(new Server(clientSocket));
-            	} else {
-            		System.out.println("rejected client");
-            		input.close();
-            		output.close();
-            		clientSocket.close();
-            	} 
             } catch (IOException e) {
                 if(isStopped()) {
                     System.out.println("Server Stopped.") ;

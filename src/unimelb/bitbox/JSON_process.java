@@ -22,13 +22,14 @@ public class JSON_process {
         //System.out.println(obj);
         return obj.toString();
     }
-    public static String CONNECTION_REFUSED(String [] host, int [] port, int hostNumber){
+    public static String CONNECTION_REFUSED(String [] host, int [] port){
         JSONObject obj = new JSONObject();
         // how to do a peer list ???? is it a list of pairs or two lists of hosts and ports
         obj.put("message",  "connection limit reached");
         obj.put("command", "CONNECTION_REFUSED");
         JSONArray list = new JSONArray();
-        for (int i = 0; i< hostNumber;i++){
+        
+        for (int i = 0; i< host.length;i++){
             JSONObject obj2 = new JSONObject();
             obj2.put("host", host[i]);
             obj2.put("port", port[i]);
@@ -491,7 +492,7 @@ public class JSON_process {
 
         long size = 45787;
         String invalid_protocol = INVALID_PROTOCOL();
-        String connection_refused = CONNECTION_REFUSED( hosts, ports,2);
+        String connection_refused = CONNECTION_REFUSED( hosts, ports);
         String handshake_request = HANDSHAKE_REQUEST("Unimelb", 8111);
         String handshake_response = HANDSHAKE_RESPONSE("Unimelb", 8111);
         //not finish due to too late.
