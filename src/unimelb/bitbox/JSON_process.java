@@ -51,8 +51,8 @@ public class JSON_process {
     public static String HANDSHAKE_REQUEST(String host, int port) {
         JSONObject obj = new JSONObject();
         obj.put("command", "HANDSHAKE_REQUEST");
-        //obj.put("host", host);
-        //obj.put("port", port);
+        															//obj.put("host", host);
+        															//obj.put("port", port);
         JSONObject obj2 = hostPort(host, port);
         obj.put("hostPort", obj2);
         return obj.toString();
@@ -117,7 +117,7 @@ public class JSON_process {
     }
 
     public static String FILE_BYTES_REQUEST(String md5, long timestamp, long size, String pathName,
-                                          int position, int length){
+                                          long position, long length){
         //needs to call the File System Manager to read the requested bytes and package them into a response message
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_BYTES_REQUEST");
