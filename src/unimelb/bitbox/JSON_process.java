@@ -117,7 +117,7 @@ public class JSON_process {
     }
 
     public static String FILE_BYTES_REQUEST(String md5, long timestamp, long size, String pathName,
-                                          int position, int length){
+                                          long position, long length){
         //needs to call the File System Manager to read the requested bytes and package them into a response message
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_BYTES_REQUEST");
