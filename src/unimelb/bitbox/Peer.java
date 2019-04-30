@@ -32,24 +32,40 @@ public class Peer
         String all_peers = Configuration.getConfigurationValue("peers").replaceAll("\\s+","");
         String[] array_of_peers = all_peers.split(","); 
         
-        int port = Integer.parseInt(port_string);
-		System.out.println("starting server");
-    	EntryPointServer server = new EntryPointServer(port);
-    	new Thread(server).start();
         
-        String[] peer_pair;
-        Socket outGoingSocket = null;
-        Client outGoingConnection = null;
-        Thread connectionThread = null; 
-        for (String peer_string : array_of_peers) {
-			System.out.println("starting client");
-			peer_pair = peer_string.split(":");
-			System.out.println(peer_pair[0]);
-			System.out.println(peer_pair[1]);
-    		outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
-        	outGoingConnection = new Client(outGoingSocket);
-        	connectionThread = new Thread(outGoingConnection);
-        	connectionThread.start();
+        String input;
+        Scanner s = new Scanner(System.in);
+        input = s.nextLine();
+
+        boolean correct = false;
+        while(!correct){
+	        if(input.equals("s") || input.equals("S")) {
+	        	correct = true;
+		        int port = Integer.parseInt(port_string);
+				System.out.println("starting server");
+		    	EntryPointServer server = new EntryPointServer(port);
+		    	new Thread(server).start();
+	    	}
+	        else if(input.equals("c") || input.equals("C")){
+	        	correct = true;
+		        String[] peer_pair;
+		        Socket outGoingSocket = null;
+		        Client outGoingConnection = null;
+		        Thread connectionThread = null; 
+		        for (String peer_string : array_of_peers) {
+					System.out.println("starting client");
+					peer_pair = peer_string.split(":");
+					System.out.println(peer_pair[0]);
+					System.out.println(peer_pair[1]);
+		    		outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
+		        	outGoingConnection = new Client(outGoingSocket);
+		        	connectionThread = new Thread(outGoingConnection);
+		        	connectionThread.start();
+		        }
+	        }else{
+	        	System.out.println("enter a valid input: s for server or c for client");
+	        	input = s.nextLine();
+	        }
         }
     }
 }
