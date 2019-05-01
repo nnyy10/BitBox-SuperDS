@@ -9,6 +9,10 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.logging.SocketHandler;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemObserver;
 import unimelb.bitbox.EntryPointServer;
@@ -21,6 +25,19 @@ public class Peer
 	private static Logger log = Logger.getLogger(Peer.class.getName());
     public static void main( String[] args ) throws IOException, NumberFormatException, NoSuchAlgorithmException
     {	
+    	
+//		JSONParser parser = new JSONParser();
+//		JSONObject obj;
+//		try {
+//			obj = (JSONObject) parser.parse("{\"hello\":{\"league\":\"oflegends\"}}");
+//			JSONObject command = (JSONObject) obj.get("hello");
+//			String l= (String) command.get("league");
+//			System.out.println(l);
+//		} catch (ParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+        
 
     	
     	System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tc] %2$s %4$s: %5$s%n");

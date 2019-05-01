@@ -12,13 +12,25 @@ import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 public class Server extends PeerConnection implements Runnable {
 
+	public static int numberOfConnections = 0;
+	
 	public Server(Socket socket) {
 		super(socket);
-		
+		numberOfConnections++;
 		this.fileSystemObserver.add(this);
-		System.out.println("server successfully connected to " + socket.getRemoteSocketAddress().toString() + Integer.toString(socket.getPort()));
+		System.out.println("server successfully connected to " + socket.getRemoteSocketAddress().toString());
 		for(FileSystemEvent e:this.fileSystemObserver.fileSystemManager.generateSyncEvents()){
 			System.out.println(e);
 		}
+	}
+	
+	protected void CloseConnection(){
+		super.CloseConnection();
+		numberOfConnections--;
+	}
+	
+	protected void finalize() throws Throwable {
+		this.CloseConnection();
+		System.out.println("in server finalize");
 	}
 }

@@ -44,15 +44,18 @@ public class PeerConnection implements Runnable{
 		System.out.println("Closing Connection");
 		try{
         	this.inputStream.close();
+        } catch(Exception e){}
+		try{
         	this.outputStream.close();
+        } catch(Exception e){}
+		try{
         	this.socket.close();
-        } catch(Exception e){
-        	e.printStackTrace();
-        }
+        } catch(Exception e){}
 	}
 	
     public void run() {
         String line = "";
+        System.out.println("in run");
         // reads message from client until "Over" is sent 
         while (true) 
         {
@@ -170,7 +173,7 @@ public class PeerConnection implements Runnable{
 					}
 
 			}
-		}catch(Exception e){e.printStackTrace();}
+		}catch(Exception e){this.CloseConnection();}
     }
 }
 
