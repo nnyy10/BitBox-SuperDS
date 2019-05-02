@@ -129,7 +129,8 @@ public class PeerConnection implements Runnable {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
                             try { if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
                                     if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-                                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));}
+                                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+                                        this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);}
                                      else{
                                          send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.NO_ERROR));
                                      }
