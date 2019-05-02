@@ -17,6 +17,7 @@ import java.net.Socket;
 import java.io.File;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.util.Date;
 
@@ -202,9 +203,11 @@ public class PeerConnection implements Runnable {
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
+                    length = (long) fileDescriptor.get("length");
+                    position = (long) fileDescriptor.get("position");
 
                     //content = (String) obj.get("content");
-                    content = fileSystemObserver.fileSystemManager.readFile(md5,position,length).toString();
+                    content = StandardCharsets.UTF_8.decode(fileSystemObserver.fileSystemManager.readFile(md5,position,length)).toString();
                     System.out.println("get request");
                     System.out.println(content);
                     System.out.println(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
