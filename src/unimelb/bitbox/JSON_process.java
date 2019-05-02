@@ -10,7 +10,8 @@ public class JSON_process {
     public enum problems{
         // ALL error may be meet
         NO_ERROR, CREATE_ERROR, UNSAFE_PATH, UNABLE_READ, DELETE_ERROR, FILE_EXISTS_WITH_MATCHING,
-        MODIFY_ERROR, PATHNAME_NOT_EXIST, CREATE_DIR_ERROR,PATHNAME_EXISTS, DELETE_DIR_ERROR
+        MODIFY_ERROR, PATHNAME_NOT_EXIST, CREATE_DIR_ERROR,PATHNAME_EXISTS, DELETE_DIR_ERROR,FILENAME_NOT_EXIST,
+        WRITE_NOT_COMPLETE,
     }
     // There exists a huge problem, which is the out-of-order messages or elements in JSON
     // using JSON-simple package
@@ -123,7 +124,7 @@ public class JSON_process {
     }
 
     public static String FILE_BYTES_RESPONSE(String md5, long timestamp, long size, String path,
-                                           int position, int length, String content, problems prob){
+                                           long position, long length, String content, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_BYTES_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
