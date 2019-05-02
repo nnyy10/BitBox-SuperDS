@@ -73,15 +73,15 @@ public class PeerConnection implements Runnable {
             }
         }
     }
-
-    public void send(String message) {
-        try {
-            outputStream.write(message + "\n");
-            outputStream.flush();
-        } catch (Exception e) {
-            System.out.println("cant print " + message);
-            this.CloseConnection();
-        }
+    public void send(String message){
+    	try{
+    		outputStream.write(message+"\n");
+    		outputStream.flush();
+    		System.out.println("Client send message: " + message);
+    	} catch(Exception e){
+    		System.out.println("cant print " + message);
+    		this.CloseConnection();
+    	}
 
     }
 
@@ -245,6 +245,7 @@ public class PeerConnection implements Runnable {
             e.printStackTrace();
             this.CloseConnection();
         }
+
     }
 }
 
