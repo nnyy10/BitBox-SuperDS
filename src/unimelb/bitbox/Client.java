@@ -3,10 +3,15 @@ package unimelb.bitbox;
 //A Java program for a Server 
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import java.io.*;
 import unimelb.bitbox.ServerMain;
 import unimelb.bitbox.PeerConnection;
 import unimelb.bitbox.JSON_process;
+
 
 
 public class Client extends PeerConnection implements Runnable {
@@ -14,14 +19,44 @@ public class Client extends PeerConnection implements Runnable {
 		super(socket);
 		this.fileSystemObserver.add(this);
 		
+		
 		try {
 
 			String Cmesg = JSON_process.HANDSHAKE_REQUEST(this.socket.getLocalAddress().toString(), this.socket.getLocalPort());
 			outputStream.write(Cmesg+"\n");
 			outputStream.flush();
 			System.out.println("Client sent: " + Cmesg);
+		
+			String temp = inputStream.readLine();
+			System.out.println("Client recieved:"+temp);
 			
-			System.out.println("Clinet successfully recieved: "+inputStream.readLine());
+			try {
+				
+				JSONParser parser = new JSONParser();
+				JSONObject jsonMsg = (JSONObject) parser.parse(temp);
+				String jsonCommand = (String) jsonMsg.get("command");
+				JSONObject jsonHostPort = (JSONObject) jsonMsg.get("hostPort");
+				String jsonHost = (String) jsonHostPort.get("host");
+				String jsonPort = (String) jsonHostPort.get("host");
+				String resp = inputStream.readLine();
+				if(jsonHost == null || jsonPort==null || jsonCommand==null|| !jsonCommand.equals("HANDSHAKE_RESPONSE")) {
+                	String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
+                	outputStream.write(invalidProtocolMsg+"\n");
+                	outputStream.flush();
+                	System.out.println("Handshake response invalid, closing socket.");
+                	socket.shutdownInput();
+                	
+					
+				}
+			}
+			catch (Exception e){
+				String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
+        		outputStream.write(invalidProtocolMsg+"\n");
+            	System.out.println("Handshake response invalid, closing socket.");
+            	socket.shutdownInput();
+            }
+		
+			
 		} catch (IOException e) {
 			System.out.println("Connection FAILED.");
 			this.CloseConnection();
@@ -33,5 +68,16 @@ public class Client extends PeerConnection implements Runnable {
 	protected void finalize() throws Throwable {
 		this.CloseConnection();
 	}
+	
+	/*protected void CloseConnection(BufferedReader inputStream, BufferedWriter outputStream, Socket socket){
+		System.out.println("Closing New Socket Connection");
+		try{
+        	inputStream.close();
+        	outputStream.close();
+        	socket.close();
+        } catch(Exception e){
+        	e.printStackTrace();
+        }
+	}*/
 
 }

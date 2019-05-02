@@ -23,7 +23,6 @@ public class EntryPointServer implements Runnable{
     protected ServerSocket serverSocket = null;
     protected boolean isStopped = false;
     protected Thread runningThread = null;
-    private int ThreadCount = 0;
     
     //Variables for reading JSON messages
     String Smesg,readmesg,host; long port;
@@ -77,7 +76,9 @@ public class EntryPointServer implements Runnable{
             	if(Server.numberOfConnections<10) {
                     String handshakeReponseMsg=JSON_process.HANDSHAKE_RESPONSE(tempServerSocket.toString(), tempServerSocket.getPort());
                     try{
-                		outputStream.write(handshakeReponseMsg+"\n");
+                    	
+                		//outputStream.write(handshakeReponseMsg+"\n");
+                    	outputStream.write("dumdeedum");
                 		outputStream.flush();
                 		System.out.println("Client accepted, sending response message: " + handshakeReponseMsg);
                 		this.threadPool.execute(new Server(tempServerSocket));
