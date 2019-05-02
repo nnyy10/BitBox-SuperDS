@@ -168,6 +168,7 @@ public class PeerConnection implements Runnable {
                                 if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,timestamp)) {
                                     if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+                                        //System.out.println(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
                                     }
                                 }
                             } catch (Exception e) {
@@ -205,8 +206,12 @@ public class PeerConnection implements Runnable {
 
 
                 case "FILE_BYTES_REQUEST":
-                    fileSystemObserver.fileSystemManager.readFile(md5,position,length);
+                    content = fileSystemObserver.fileSystemManager.readFile(md5,position,length).toString();
+                    System.out.println("get request");
+                    System.out.println(content);
+                    System.out.println(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
                     send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
+                    System.out.println("response sent");
                     break;
 
 
