@@ -77,13 +77,15 @@ public class EntryPointServer implements Runnable{
             	if(Server.numberOfConnections<10) {
                     String handshakeReponseMsg=JSON_process.HANDSHAKE_RESPONSE(tempServerSocket.toString(), tempServerSocket.getPort());
                     try{
-                		outputStream.write(handshakeReponseMsg+"\n");
+                		//outputStream.write(handshakeReponseMsg+"\n");
+                    	outputStream.write("hi"+"\n");
                 		outputStream.flush();
                 		System.out.println("Client accepted, sending response message: " + handshakeReponseMsg);
                 		this.threadPool.execute(new Server(tempServerSocket));
                 	} catch(Exception e){
                 		System.out.println("Client accepted but error sending handshake response, closing connection");
                 		this.CloseConnection(inputStream, outputStream, tempServerSocket);
+                		continue;
             		}
             	} 	
             	else {

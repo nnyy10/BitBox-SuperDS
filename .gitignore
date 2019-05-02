@@ -6,3 +6,4 @@ classes/*
 configuration.properties
 pom.xml
 /bin/
+target/*

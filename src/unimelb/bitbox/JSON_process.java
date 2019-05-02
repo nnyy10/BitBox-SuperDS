@@ -212,7 +212,7 @@ public class JSON_process {
     public static String DIRECTORY_CREATE_REQUEST(String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_CREATE_REQUEST");
-        obj.put("pathName" ,"dir/subdir/" + path); // not sure about this.
+        obj.put("pathName", path); // not sure about this.
         // this needs modify to original path + modify path
         return obj.toString();
     }
@@ -244,10 +244,8 @@ public class JSON_process {
     public static String DIRECTORY_DELETE_REQUEST(String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_DELETE_REQUEST");
-        obj.put("pathName" ,"dir/subdir/"+path); // not sure about this.
-        // this needs modify to original path + modify path
+        obj.put("pathName" , path);
         return obj.toString();
-
     }
 
     public static String DIRECTORY_DELETE_RESPONSE(String path, problems prob){

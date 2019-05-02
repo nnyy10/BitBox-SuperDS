@@ -63,8 +63,8 @@ public class PeerConnection implements Runnable{
             try
             {
                 line = inputStream.readLine();
-				System.out.println("in implement");
-                implement(line);
+				System.out.println("Peer recieved: "+ line);
+                //implement(line);
 
 	        } catch (Exception e) {
 	        	this.CloseConnection();
