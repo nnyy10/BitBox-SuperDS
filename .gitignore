@@ -7,3 +7,4 @@ configuration.properties
 pom.xml
 /bin/
 target/*
+share/*
