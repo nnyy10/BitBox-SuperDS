@@ -15,7 +15,7 @@ import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemObserver;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
-public class ServerMain implements FileSystemObserver {
+public class  ServerMain implements FileSystemObserver {
 	private static Logger log = Logger.getLogger(ServerMain.class.getName());
 	public FileSystemManager fileSystemManager;
 	private ArrayList<PeerConnection> connections = new ArrayList<>();
@@ -53,23 +53,23 @@ public class ServerMain implements FileSystemObserver {
 		case FILE_CREATE:
 			return JSON_process.FILE_CREATE_REQUEST(fileSystemEvent.fileDescriptor.md5,
 					fileSystemEvent.fileDescriptor.lastModified, fileSystemEvent.fileDescriptor.fileSize,
-					fileSystemEvent.path);
+					fileSystemEvent.pathName);
 
 		case FILE_DELETE:
 			return JSON_process.FILE_DELETE_REQUEST(fileSystemEvent.fileDescriptor.md5,
 					fileSystemEvent.fileDescriptor.lastModified, fileSystemEvent.fileDescriptor.fileSize,
-					fileSystemEvent.path);
+					fileSystemEvent.pathName);
 
 		case FILE_MODIFY:
 			return JSON_process.FILE_MODIFY_REQUEST(fileSystemEvent.fileDescriptor.md5,
 					fileSystemEvent.fileDescriptor.lastModified, fileSystemEvent.fileDescriptor.fileSize,
-					fileSystemEvent.path);
+					fileSystemEvent.pathName);
 
 		case DIRECTORY_CREATE:
-			sendPath = this.getPath(fileSystemEvent.path, fileSystemEvent.name);
+			sendPath = this.getPath(fileSystemEvent.pathName, fileSystemEvent.pathName);
 			return JSON_process.DIRECTORY_CREATE_REQUEST(sendPath);
 		case DIRECTORY_DELETE:
-			sendPath = this.getPath(fileSystemEvent.path, fileSystemEvent.name);
+			sendPath = this.getPath(fileSystemEvent.pathName, fileSystemEvent.pathName);
 			return JSON_process.DIRECTORY_DELETE_REQUEST(sendPath);
 		}
 		return "";
@@ -86,7 +86,9 @@ public class ServerMain implements FileSystemObserver {
 			sendPath = name;
 		return sendPath;
 	}
-	
+
+
+
 	public void add(PeerConnection peerConnection) {
 		if (!connections.contains(peerConnection))
 			this.connections.add(peerConnection);

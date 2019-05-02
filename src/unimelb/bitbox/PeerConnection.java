@@ -17,6 +17,7 @@ import java.net.Socket;
 import java.io.File;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileSystems;
 import java.util.Date;
 
 import unimelb.bitbox.util.FileSystemManager;
@@ -125,17 +126,23 @@ public class PeerConnection implements Runnable {
                     System.out.println("in  file creat");
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
-                            try {System.out.println(this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5));
+                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
+                            try {
                                 if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
-                                    if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                                    System.out.println(this.fileSystemObserver.fileSystemManager.checkShortcut(pathName));
+                                    if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                                        System.out.println(this.fileSystemObserver.fileSystemManager.checkShortcut(pathName));
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+                                        System.out.println("sent request");
                                     }
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         } else {
+                            System.out.println(pathName);
+                            File file= new File(pathName);
+                            file.createNewFile();
                             send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.PATHNAME_EXISTS));
                         }
                     } else {
@@ -167,6 +174,7 @@ public class PeerConnection implements Runnable {
                                 e.printStackTrace();
                             }
                         } else {
+
                             send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.PATHNAME_NOT_EXIST));
                         }
                     } else {
@@ -176,18 +184,20 @@ public class PeerConnection implements Runnable {
                     // is here need send back a response if checkshortcut or anything else goes wrong?
 
                 case "FILE_BYTES_RESPONSE":
+                    System.out.println("----=-----------");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
-                    size = (int) fileDescriptor.get("fileSize");
+                    size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     content = (String) obj.get("content");
                     ByteBuffer src = ByteBuffer.wrap(content.getBytes());
                     if (this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position)) {
                         if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
-                            JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, size);
+                            send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
                         } else {
-                            JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length);
+                           fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                           send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
                         }
                         // is there need a "else" to send back a successful response?
                     }
@@ -240,7 +250,7 @@ public class PeerConnection implements Runnable {
 //					timestamp = (long) fileDescriptor.get("lastModified");
 //					size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
-                    file = new File(pathName);
+//                    file = new File(pathName);
                     System.out.println(pathName);
                     if (this.fileSystemObserver.fileSystemManager.makeDirectory(pathName)) {
                         send(JSON_process.DIRECTORY_CREATE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
