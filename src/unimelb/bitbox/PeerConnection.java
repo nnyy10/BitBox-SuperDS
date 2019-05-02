@@ -129,7 +129,13 @@ public class PeerConnection implements Runnable {
                             try { 
                             	this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-                                    send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, length));
+                                	
+                        			long readLength;
+                        			if(size <= length)
+                        				readLength = size;
+                        			else
+                        				readLength = length;
+                                    send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
                                 }
                                  else{
                                 	 this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
@@ -190,9 +196,14 @@ public class PeerConnection implements Runnable {
                     position = (long) obj.get("position");
                     ByteBuffer src = ByteBuffer.wrap(java.util.Base64.getDecoder().decode(content));
                     this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position);
-
+                    
                     if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
-                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position+length, length));
+            			long readLength;
+            			if(position + length + length <= size)
+            				readLength = length;
+            			else
+            				readLength =size-position +length+length;
+                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position+length, readLength));
                     } else {
                        fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
                        send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
@@ -214,6 +225,8 @@ public class PeerConnection implements Runnable {
                 	System.out.println("message not recieved correctly" + length);
                 	System.out.println("message not recieved correctly" + position);
                     
+
+                	
                 	byte[] byteContent = fileSystemObserver.fileSystemManager.readFile(md5,position,length).array();
                     content = java.util.Base64.getEncoder().encodeToString(byteContent);
                     System.out.println("file byte request read content: " + content);
@@ -224,11 +237,6 @@ public class PeerConnection implements Runnable {
 
 
                 case "FILE_DELETE_REQUEST":
-                    /**
-                     * there exists a problem that how to get the position and length information.
-                     *   is there need some functions to get those information and do they change during the bytes transmission?
-                     * and also the logic need to reconsider to get the things right.
-                     */
                 	System.out.println("in file delete");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
