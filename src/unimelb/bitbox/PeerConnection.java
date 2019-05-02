@@ -127,6 +127,8 @@ public class PeerConnection implements Runnable {
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
+                            File file=new File(pathName);
+                            file.createNewFile();
                             try { if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
                                     if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
@@ -154,13 +156,14 @@ public class PeerConnection implements Runnable {
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     System.out.println("in  file modify");
-                    File file= new File(pathName);
-                    Date filetime = new Date(file.lastModified());
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
                             try {
+                                File exit_file=new File(pathName);
+                                exit_file.createNewFile();
+                                long last_timestamp=exit_file.lastModified();
                                 this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
-                                if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,timestamp)) {
+                                if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,last_timestamp)) {
                                     if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
                                     }
