@@ -95,7 +95,7 @@ public class PeerConnection implements Runnable {
         try {
             String md5 = " ", host = " ", msg = " ", pathName = " ", content = " ";
             long size = 0;
-            long port = 0, position = 0, length = 0, timestamp = 0;
+            long port = 0, position = 0, length = 10, timestamp = 0;
             JSONObject obj = (JSONObject) parser.parse(str);
             // first JSONObject need to be deal with, and then use obj as input
             String information = (String) obj.get("command");
@@ -119,8 +119,6 @@ public class PeerConnection implements Runnable {
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
-                            File file=new File(pathName);
-                            file.createNewFile();
                             try { if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
                                     if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                         this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
