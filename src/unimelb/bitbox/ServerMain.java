@@ -66,13 +66,8 @@ public class ServerMain implements FileSystemObserver {
 					fileSystemEvent.path);
 
 		case DIRECTORY_CREATE:
-<<<<<<< HEAD
 			sendPath = this.getPath(fileSystemEvent.path, fileSystemEvent.name);
 			return JSON_process.DIRECTORY_CREATE_REQUEST(sendPath);
-=======
-			return JSON_process.DIRECTORY_CREATE_REQUEST((fileSystemEvent.path));
->>>>>>> ecfbbd90a4678835e0c0d0790ad68e88c35cdaf1
-
 		case DIRECTORY_DELETE:
 			sendPath = this.getPath(fileSystemEvent.path, fileSystemEvent.name);
 			return JSON_process.DIRECTORY_DELETE_REQUEST(sendPath);
