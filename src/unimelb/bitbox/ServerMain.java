@@ -59,7 +59,7 @@ public class ServerMain implements FileSystemObserver {
 					fileSystemEvent.path);
 
 		case DIRECTORY_CREATE:
-			return JSON_process.DIRECTORY_DELETE_REQUEST(fileSystemEvent.path);
+			return JSON_process.DIRECTORY_CREATE_REQUEST((fileSystemEvent.path));
 
 		case DIRECTORY_DELETE:
 			return JSON_process.DIRECTORY_DELETE_REQUEST(fileSystemEvent.path);
