@@ -224,6 +224,11 @@ public class PeerConnection implements Runnable {
 
 
                 case "FILE_DELETE_REQUEST":
+                    /**
+                     * there exists a problem that how to get the position and length information.
+                     *   is there need some functions to get those information and do they change during the bytes transmission?
+                     * and also the logic need to reconsider to get the things right.
+                     */
                 	System.out.println("in file delete");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
