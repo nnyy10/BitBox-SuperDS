@@ -75,6 +75,7 @@ public class PeerConnection implements Runnable{
     	try{
     		outputStream.write(message+"\n");
     		outputStream.flush();
+    		System.out.println("Client send message: " + message);
     	} catch(Exception e){
     		System.out.println("cant print " + message);
     		this.CloseConnection();
@@ -173,7 +174,10 @@ public class PeerConnection implements Runnable{
 					}
 
 			}
-		}catch(Exception e){this.CloseConnection();}
+		}catch(Exception e){
+			e.printStackTrace();
+			this.CloseConnection();
+		}
     }
 }
 
