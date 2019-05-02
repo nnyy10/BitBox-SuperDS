@@ -47,7 +47,6 @@ public class  ServerMain implements FileSystemObserver {
 	}
 
 	public String toJSON(FileSystemEvent fileSystemEvent) {
-		String sendPath;
 		switch (fileSystemEvent.event) {
 		case FILE_CREATE:
 			return JSON_process.FILE_CREATE_REQUEST(fileSystemEvent.fileDescriptor.md5,

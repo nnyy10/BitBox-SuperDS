@@ -117,24 +117,20 @@ public class PeerConnection implements Runnable {
                     //content is useless here
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
-                            try {
-                                if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
-                                    System.out.println(this.fileSystemObserver.fileSystemManager.checkShortcut(pathName));
+                        if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
+                            try { if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
                                     if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-                                        System.out.println(this.fileSystemObserver.fileSystemManager.checkShortcut(pathName));
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-                                        System.out.println("sent request");
-                                    }
+                                        this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);}
+                                     else{
+                                         send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.NO_ERROR));
+                                     }
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         } else {
-                            System.out.println(pathName);
-                            File file= new File(pathName);
-                            file.createNewFile();
-                            send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.PATHNAME_EXISTS));
+                            send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.FILENAME_EXIST));
                         }
                     } else {
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
@@ -155,10 +151,10 @@ public class PeerConnection implements Runnable {
                         if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
                             try {
                                 this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
-//                                last modify
                                 if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,timestamp)) {
                                     if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+                                        //System.out.println(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
                                     }
                                 }
                             } catch (Exception e) {
@@ -196,9 +192,25 @@ public class PeerConnection implements Runnable {
 
 
                 case "FILE_BYTES_REQUEST":
+<<<<<<< HEAD
                 	System.out.println("in file bytes");
                     fileSystemObserver.fileSystemManager.readFile(md5,position,length);
+=======
+
+                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+                    md5 = (String) fileDescriptor.get("md5");
+                    timestamp = (long) fileDescriptor.get("lastModified");
+                    size = (long) fileDescriptor.get("fileSize");
+                    pathName = (String) obj.get("pathName");
+
+                    //content = (String) obj.get("content");
+                    content = fileSystemObserver.fileSystemManager.readFile(md5,position,length).toString();
+                    System.out.println("get request");
+                    System.out.println(content);
+                    System.out.println(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
+>>>>>>> d60182cbf10e9648496e728ffbf83529b0edf84d
                     send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
+                    System.out.println("response sent");
                     break;
 
 

@@ -11,7 +11,7 @@ public class JSON_process {
         // ALL error may be meet
         NO_ERROR, CREATE_ERROR, UNSAFE_PATH, UNABLE_READ, DELETE_ERROR, FILE_EXISTS_WITH_MATCHING,
         MODIFY_ERROR, PATHNAME_NOT_EXIST, CREATE_DIR_ERROR,PATHNAME_EXISTS, DELETE_DIR_ERROR,FILENAME_NOT_EXIST,
-        WRITE_NOT_COMPLETE,
+        WRITE_NOT_COMPLETE,FILENAME_EXIST,
     }
     // There exists a huge problem, which is the out-of-order messages or elements in JSON
     // using JSON-simple package
