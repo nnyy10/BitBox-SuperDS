@@ -29,24 +29,19 @@ public class Client extends PeerConnection implements Runnable {
 		
 			String temp = inputStream.readLine();
 			System.out.println("Client recieved:"+temp);
-			
 			try {
-				
 				JSONParser parser = new JSONParser();
 				JSONObject jsonMsg = (JSONObject) parser.parse(temp);
 				String jsonCommand = (String) jsonMsg.get("command");
 				JSONObject jsonHostPort = (JSONObject) jsonMsg.get("hostPort");
 				String jsonHost = (String) jsonHostPort.get("host");
 				String jsonPort = (String) jsonHostPort.get("host");
-				String resp = inputStream.readLine();
 				if(jsonHost == null || jsonPort==null || jsonCommand==null|| !jsonCommand.equals("HANDSHAKE_RESPONSE")) {
                 	String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
                 	outputStream.write(invalidProtocolMsg+"\n");
                 	outputStream.flush();
                 	System.out.println("Handshake response invalid, closing socket.");
                 	socket.shutdownInput();
-                	
-					
 				}
 			}
 			catch (Exception e){
@@ -55,14 +50,11 @@ public class Client extends PeerConnection implements Runnable {
             	System.out.println("Handshake response invalid, closing socket.");
             	socket.shutdownInput();
             }
-		
-			
 		} catch (IOException e) {
 			System.out.println("Connection FAILED.");
 			this.CloseConnection();
 		}
 		System.out.println("client successfully connected to " + socket.getRemoteSocketAddress().toString());
-	
 	}
 	
 	protected void finalize() throws Throwable {

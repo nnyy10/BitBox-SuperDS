@@ -2,6 +2,10 @@ package unimelb.bitbox;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+
+import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemManager;
 
 import java.io.InputStream;
@@ -95,7 +99,10 @@ public class PeerConnection implements Runnable {
         try {
             String md5 = " ", host = " ", msg = " ", pathName = " ", content = " ";
             long size = 0;
-            long port = 0, position = 0, length = 10, timestamp = 0;
+            long port = 0;
+            long position = 0;
+            long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim());
+            long timestamp = 0;
             JSONObject obj = (JSONObject) parser.parse(str);
             // first JSONObject need to be deal with, and then use obj as input
             String information = (String) obj.get("command");
@@ -119,15 +126,15 @@ public class PeerConnection implements Runnable {
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
-                            try { if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
-                                    if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-                                        this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-                                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-                                    }
-                                     else{
-                                         send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.NO_ERROR));
-                                     }
+                            try { 
+                            	this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
+                                if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                                    send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, length));
                                 }
+                                 else{
+                                	 this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                                     send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.NO_ERROR));
+                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -174,23 +181,23 @@ public class PeerConnection implements Runnable {
                     // is here need send back a response if checkshortcut or anything else goes wrong?
 
                 case "FILE_BYTES_RESPONSE":
-                    System.out.println("----=-----------");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     content = (String) obj.get("content");
-                    ByteBuffer src = ByteBuffer.wrap(content.getBytes());
-                    if (this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position)) {
-                        if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
-                            send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-                        } else {
-                           fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-                           send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
-                        }
-                        // is there need a "else" to send back a successful response?
+                    position = (long) obj.get("position");
+                    ByteBuffer src = ByteBuffer.wrap(java.util.Base64.getDecoder().decode(content));
+                    this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position);
+
+                    if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
+                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position+length, length));
+                    } else {
+                       fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                       send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
                     }
+                        // is there need a "else" to send back a successful response?
                     break;
 
 
@@ -201,16 +208,18 @@ public class PeerConnection implements Runnable {
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
-                    length = (long) fileDescriptor.get("length");
-                    position = (long) fileDescriptor.get("position");
-
-                    //content = (String) obj.get("content");
-                    content = StandardCharsets.UTF_8.decode(fileSystemObserver.fileSystemManager.readFile(md5,position,length)).toString();
-                    System.out.println("get request");
-                    System.out.println(content);
-                    System.out.println(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
-                    send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
-                    System.out.println("response sent");
+                    length = (long) obj.get("length");
+                    position = (long) obj.get("position");
+                	System.out.println("message not recieved correctly" + md5);
+                	System.out.println("message not recieved correctly" + length);
+                	System.out.println("message not recieved correctly" + position);
+                    
+                	byte[] byteContent = fileSystemObserver.fileSystemManager.readFile(md5,position,length).array();
+                    content = java.util.Base64.getEncoder().encodeToString(byteContent);
+                    System.out.println("file byte request read content: " + content);
+                    String fileBytesResponse = JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position+length,length,content,JSON_process.problems.NO_ERROR);
+                    send(fileBytesResponse);
+                    System.out.println("response sent: " + fileBytesResponse);
                     break;
 
 
