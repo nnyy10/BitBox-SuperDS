@@ -1,9 +1,14 @@
 package unimelb.bitbox;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.io.File;
 
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemManager;
@@ -17,6 +22,7 @@ public class ServerMain implements FileSystemObserver {
 
 	private ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager = new FileSystemManager(Configuration.getConfigurationValue("path").trim(), this);
+		//fileSystemManager.makeDirectory("lol");
 	}
 
 	private static ServerMain Single_instance = null;
@@ -42,6 +48,7 @@ public class ServerMain implements FileSystemObserver {
 	}
 
 	public String toJSON(FileSystemEvent fileSystemEvent) {
+		String sendPath;
 		switch (fileSystemEvent.event) {
 		case FILE_CREATE:
 			return JSON_process.FILE_CREATE_REQUEST(fileSystemEvent.fileDescriptor.md5,
@@ -59,14 +66,32 @@ public class ServerMain implements FileSystemObserver {
 					fileSystemEvent.path);
 
 		case DIRECTORY_CREATE:
-			return JSON_process.DIRECTORY_DELETE_REQUEST(fileSystemEvent.path);
+<<<<<<< HEAD
+			sendPath = this.getPath(fileSystemEvent.path, fileSystemEvent.name);
+			return JSON_process.DIRECTORY_CREATE_REQUEST(sendPath);
+=======
+			return JSON_process.DIRECTORY_CREATE_REQUEST((fileSystemEvent.path));
+>>>>>>> ecfbbd90a4678835e0c0d0790ad68e88c35cdaf1
 
 		case DIRECTORY_DELETE:
-			return JSON_process.DIRECTORY_DELETE_REQUEST(fileSystemEvent.path);
+			sendPath = this.getPath(fileSystemEvent.path, fileSystemEvent.name);
+			return JSON_process.DIRECTORY_DELETE_REQUEST(sendPath);
 		}
 		return "";
 	}
-
+	
+	private String getPath(String path, String name){
+		String[] subDirs = path.split(Pattern.quote(File.separator));
+		String sendPath = "";
+		if(subDirs.length>1){
+			for(int i=1;i<subDirs.length;i++)
+				sendPath = sendPath +subDirs[i]+"/";
+			sendPath = sendPath + name;
+		}else
+			sendPath = name;
+		return sendPath;
+	}
+	
 	public void add(PeerConnection peerConnection) {
 		if (!connections.contains(peerConnection))
 			this.connections.add(peerConnection);

@@ -10,7 +10,8 @@ public class JSON_process {
     public enum problems{
         // ALL error may be meet
         NO_ERROR, CREATE_ERROR, UNSAFE_PATH, UNABLE_READ, DELETE_ERROR, FILE_EXISTS_WITH_MATCHING,
-        MODIFY_ERROR, PATHNAME_NOT_EXIST, CREATE_DIR_ERROR,PATHNAME_EXISTS, DELETE_DIR_ERROR
+        MODIFY_ERROR, PATHNAME_NOT_EXIST, CREATE_DIR_ERROR,PATHNAME_EXISTS, DELETE_DIR_ERROR,FILENAME_NOT_EXIST,
+        WRITE_NOT_COMPLETE,
     }
     // There exists a huge problem, which is the out-of-order messages or elements in JSON
     // using JSON-simple package
@@ -123,7 +124,7 @@ public class JSON_process {
     }
 
     public static String FILE_BYTES_RESPONSE(String md5, long timestamp, long size, String path,
-                                           int position, int length, String content, problems prob){
+                                           long position, long length, String content, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_BYTES_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
@@ -212,7 +213,7 @@ public class JSON_process {
     public static String DIRECTORY_CREATE_REQUEST(String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_CREATE_REQUEST");
-        obj.put("pathName" ,"dir/subdir/" + path); // not sure about this.
+        obj.put("pathName", path); // not sure about this.
         // this needs modify to original path + modify path
         return obj.toString();
     }
@@ -244,10 +245,8 @@ public class JSON_process {
     public static String DIRECTORY_DELETE_REQUEST(String path){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_DELETE_REQUEST");
-        obj.put("pathName" ,"dir/subdir/"+path); // not sure about this.
-        // this needs modify to original path + modify path
+        obj.put("pathName" , path);
         return obj.toString();
-
     }
 
     public static String DIRECTORY_DELETE_RESPONSE(String path, problems prob){
