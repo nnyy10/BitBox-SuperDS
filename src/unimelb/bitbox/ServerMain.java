@@ -66,26 +66,25 @@ public class  ServerMain implements FileSystemObserver {
 					fileSystemEvent.pathName);
 
 		case DIRECTORY_CREATE:
-			sendPath = this.getPath(fileSystemEvent.pathName, fileSystemEvent.pathName);
-			return JSON_process.DIRECTORY_CREATE_REQUEST(sendPath);
+			return JSON_process.DIRECTORY_CREATE_REQUEST(fileSystemEvent.pathName);
+
 		case DIRECTORY_DELETE:
-			sendPath = this.getPath(fileSystemEvent.pathName, fileSystemEvent.pathName);
-			return JSON_process.DIRECTORY_DELETE_REQUEST(sendPath);
+			return JSON_process.DIRECTORY_DELETE_REQUEST(fileSystemEvent.pathName);
 		}
 		return "";
 	}
 	
-	private String getPath(String path, String name){
-		String[] subDirs = path.split(Pattern.quote(File.separator));
-		String sendPath = "";
-		if(subDirs.length>1){
-			for(int i=1;i<subDirs.length;i++)
-				sendPath = sendPath +subDirs[i]+"/";
-			sendPath = sendPath + name;
-		}else
-			sendPath = name;
-		return sendPath;
-	}
+//	private String getPath(String path, String name){
+//		String[] subDirs = path.split(Pattern.quote(File.separator));
+//		String sendPath = "";
+//		if(subDirs.length>1){
+//			for(int i=1;i<subDirs.length;i++)
+//				sendPath = sendPath +subDirs[i]+"/";
+//			sendPath = sendPath + name;
+//		}else
+//			sendPath = name;
+//		return sendPath;
+//	}
 
 
 
