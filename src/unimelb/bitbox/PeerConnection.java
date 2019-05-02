@@ -17,6 +17,7 @@ import java.net.Socket;
 import java.io.File;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.util.Date;
 
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
@@ -121,10 +122,11 @@ public class PeerConnection implements Runnable {
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     //content is useless here
+                    System.out.println("in  file creat");
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
-                            try {
+                        if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
+                            try {System.out.println(this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5));
                                 if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
                                     if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
@@ -148,11 +150,15 @@ public class PeerConnection implements Runnable {
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
+                    System.out.println("in  file modify");
+                    File file= new File(pathName);
+                    Date filetime = new Date(file.lastModified());
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
+                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
                             try {
                                 this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
-                                if (this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)) {
+//                                last modify
+                                if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,timestamp)) {
                                     if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
                                     }
@@ -179,16 +185,18 @@ public class PeerConnection implements Runnable {
                     ByteBuffer src = ByteBuffer.wrap(content.getBytes());
                     if (this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position)) {
                         if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
-                            JSON_process.FILE_BYTES_RESPONSE(md5, timestamp, size, pathName, position, size, content, JSON_process.problems.NO_ERROR);
+                            JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, size);
                         } else {
-                            JSON_process.FILE_BYTES_RESPONSE(md5, timestamp, size, pathName, position, size, content, JSON_process.problems.WRITE_NOT_COMPLETE);
+                            JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length);
                         }
                         // is there need a "else" to send back a successful response?
                     }
                     break;
 
+
                 case "FILE_BYTES_REQUEST":
-                    send(JSON_process.FILE_BYTES_RESPONSE(md5, timestamp, size, pathName, position, length, content, JSON_process.problems.NO_ERROR));
+                    fileSystemObserver.fileSystemManager.readFile(md5,position,length);
+                    send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
                     break;
 
 
@@ -197,6 +205,7 @@ public class PeerConnection implements Runnable {
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
                     pathName = (String) obj.get("pathName");
+                    System.out.println("in  file delete");
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
                             this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
@@ -213,7 +222,7 @@ public class PeerConnection implements Runnable {
                 case "DIRECTORY_DELETE_REQUEST":
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     pathName = (String) obj.get("pathName");
-                    File file = new File(pathName);
+//                    File file = new File(pathName);
                     System.out.println("in del");
                     boolean successfully_deleted = this.fileSystemObserver.fileSystemManager.deleteDirectory(pathName);
                     System.out.println(successfully_deleted);
@@ -231,7 +240,6 @@ public class PeerConnection implements Runnable {
 //					timestamp = (long) fileDescriptor.get("lastModified");
 //					size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
-                    System.out.println("in  dir");
                     file = new File(pathName);
                     System.out.println(pathName);
                     if (this.fileSystemObserver.fileSystemManager.makeDirectory(pathName)) {
