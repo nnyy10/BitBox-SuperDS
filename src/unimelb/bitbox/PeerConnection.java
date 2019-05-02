@@ -15,6 +15,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.io.File;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 
 import unimelb.bitbox.util.FileSystemManager;
@@ -62,8 +63,9 @@ public class PeerConnection implements Runnable{
             try
             {
                 line = inputStream.readLine();
+				System.out.println("in implement");
                 implement(line);
-//				send(JSON_process.getInformation(line));
+
 	        } catch (Exception e) {
 	        	this.CloseConnection();
 	        	break;
@@ -85,6 +87,7 @@ public class PeerConnection implements Runnable{
 	public void implement(String str) {
 		JSONParser parser = new JSONParser();
 
+
 		try {
 			String md5 = " ", host = " ", msg = " ", pathName = " ", content = " ";
 			long size = 0;
@@ -94,19 +97,30 @@ public class PeerConnection implements Runnable{
 			String information = (String) obj.get("command");
 			JSONObject fileDescriptor;
 //FileSystemEvent fileSystemEvent = fileSystemManager.de.new FileSystemEvent(" "," ",FileSystemManager.EVENT.FILE_CREATE);
-			fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-			md5 = (String) fileDescriptor.get("md5");
-			//System.out.println("md5: "+ md5);
-			timestamp = (long) fileDescriptor.get("lastModified");
-			size = (long) fileDescriptor.get("fileSize");
-			pathName = (String) obj.get("pathName");
-			content = (String) obj.get("content");
+//			JSONObject fileDescriptor;
+//			fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+//			md5 = (String) fileDescriptor.get("md5");
+//			//System.out.println("md5: "+ md5);
+//			timestamp = (long) fileDescriptor.get("lastModified");
+//			size = (long) fileDescriptor.get("fileSize");
+//			pathName = (String) obj.get("pathName");
+//			content = (String) obj.get("content");
 
-
+			/**
+			 * there still exists a big problem that what is the pathName look like?
+			 * does it need to be handled though JSON process or here?
+			 */
 
 			switch (information) {
 
 				case "FILE_CREATE_REQUEST":
+					fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+					md5 = (String) fileDescriptor.get("md5");
+					timestamp = (long) fileDescriptor.get("lastModified");
+					size = (long) fileDescriptor.get("fileSize");
+					pathName = (String) obj.get("pathName");
+					//content is useless here
+
 					if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName))
 					{	if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
 						{ try{
@@ -121,6 +135,12 @@ public class PeerConnection implements Runnable{
 
 
  				case "FILE_BYTES_RESPONSE":
+					fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+					md5 = (String) fileDescriptor.get("md5");
+					timestamp = (long) fileDescriptor.get("lastModified");
+					size = (long) fileDescriptor.get("fileSize");
+					pathName = (String) obj.get("pathName");
+					content = (String) obj.get("content");
 					ByteBuffer src = ByteBuffer.wrap(content.getBytes());
  					if(this.fileSystemObserver.fileSystemManager.writeFile(pathName,src,position))
 					{
@@ -128,10 +148,15 @@ public class PeerConnection implements Runnable{
 						{
 							send(JSON_process.FILE_BYTES_REQUEST(md5,timestamp,size,pathName,position,length));
 						}
+						// is there need a "else" to send back a successful response?
 					}
 
 
 				case "FILE_DELETE_REQUEST":
+					fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+					md5 = (String) fileDescriptor.get("md5");
+					timestamp = (long) fileDescriptor.get("lastModified");
+					pathName = (String) obj.get("pathName");
 					if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName))
 						{if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
 						{
@@ -142,6 +167,11 @@ public class PeerConnection implements Runnable{
 
 
 				case "FILE_MODIFY_REQUEST":
+					fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+					md5 = (String) fileDescriptor.get("md5");
+					timestamp = (long) fileDescriptor.get("lastModified");
+					size = (long) fileDescriptor.get("fileSize");
+					pathName = (String) obj.get("pathName");
 					if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName))
 					{	if(this.fileSystemObserver.fileSystemManager.fileNameExists(pathName))
 					{ try{this.fileSystemObserver.fileSystemManager.deleteFile(pathName,timestamp,md5);
@@ -153,16 +183,27 @@ public class PeerConnection implements Runnable{
 					}
 					else { send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.PATHNAME_NOT_EXIST));}}
 					else{send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.UNSAFE_PATH));}
-
+					// is here need send back a response if checkshortcut or anything else goes wrong?
 
 
 				case "DIRECTORY_DELETE_REQUEST":
+					fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+//					md5 = (String) fileDescriptor.get("md5");
+//					timestamp = (long) fileDescriptor.get("lastModified");
+//					size = (long) fileDescriptor.get("fileSize");
+					pathName = (String) obj.get("pathName");
 					File file = new File(pathName);
 					if(file.isDirectory()){
 						if(file.list().length==0){
 					this.fileSystemObserver.fileSystemManager.deleteDirectory(pathName);}}
 
 				case "DIRECTORY_CREATE_REQUEST":
+//					fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+//					md5 = (String) fileDescriptor.get("md5");
+//					timestamp = (long) fileDescriptor.get("lastModified");
+//					size = (long) fileDescriptor.get("fileSize");
+					pathName = (String) obj.get("pathName");
+					System.out.println("in creat dir");
 					file = new File(pathName);
 					if(!file.exists())
 					{
@@ -172,6 +213,7 @@ public class PeerConnection implements Runnable{
 							e.printStackTrace();
 						}
 					}
+					//  there needs another case to deal with byte request
 
 			}
 		}catch(Exception e){
