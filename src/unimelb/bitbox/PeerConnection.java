@@ -66,7 +66,7 @@ public class PeerConnection implements Runnable {
         while (true) {
             try {
                 line = inputStream.readLine();
-                System.out.println("in implement");
+                System.out.println("Recieved Message: " + line);
                 implement(line);
 
             } catch (Exception e) {
@@ -79,7 +79,7 @@ public class PeerConnection implements Runnable {
     	try{
     		outputStream.write(message+"\n");
     		outputStream.flush();
-    		System.out.println("Client send message: " + message);
+    		System.out.println("Sent message: " + message);
     	} catch(Exception e){
     		System.out.println("cant print " + message);
     		this.CloseConnection();
@@ -99,15 +99,6 @@ public class PeerConnection implements Runnable {
             // first JSONObject need to be deal with, and then use obj as input
             String information = (String) obj.get("command");
             JSONObject fileDescriptor;
-//FileSystemEvent fileSystemEvent = fileSystemManager.de.new FileSystemEvent(" "," ",FileSystemManager.EVENT.FILE_CREATE);
-//			JSONObject fileDescriptor;
-//			fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-//			md5 = (String) fileDescriptor.get("md5");
-//			//System.out.println("md5: "+ md5);
-//			timestamp = (long) fileDescriptor.get("lastModified");
-//			size = (long) fileDescriptor.get("fileSize");
-//			pathName = (String) obj.get("pathName");
-//			content = (String) obj.get("content");
 
             /**
              * there still exists a big problem that what is the pathName look like?
@@ -117,13 +108,13 @@ public class PeerConnection implements Runnable {
             switch (information) {
 
                 case "FILE_CREATE_REQUEST":
+                	System.out.println("in file create");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     //content is useless here
-                    System.out.println("in  file creat");
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
@@ -166,6 +157,7 @@ public class PeerConnection implements Runnable {
                                 if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,last_timestamp)) {
                                     if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+                                        //System.out.println(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
                                     }
                                 }
                             } catch (Exception e) {
@@ -203,20 +195,25 @@ public class PeerConnection implements Runnable {
 
 
                 case "FILE_BYTES_REQUEST":
+                	System.out.println("in file bytes");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
-                    content = (String) obj.get("content");
 
-
-                    fileSystemObserver.fileSystemManager.readFile(md5,position,length);
+                    //content = (String) obj.get("content");
+                    content = fileSystemObserver.fileSystemManager.readFile(md5,position,length).toString();
+                    System.out.println("get request");
+                    System.out.println(content);
+                    System.out.println(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
                     send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
+                    System.out.println("response sent");
                     break;
 
 
                 case "FILE_DELETE_REQUEST":
+                	System.out.println("in file delete");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
@@ -236,27 +233,24 @@ public class PeerConnection implements Runnable {
 
 
                 case "DIRECTORY_DELETE_REQUEST":
+                	System.out.println("in directory delete");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     pathName = (String) obj.get("pathName");
 //                    File file = new File(pathName);
-                    System.out.println("in del");
+                    System.out.println("");
                     boolean successfully_deleted = this.fileSystemObserver.fileSystemManager.deleteDirectory(pathName);
                     System.out.println(successfully_deleted);
                     if (successfully_deleted) {
-                        send(JSON_process.DIRECTORY_DELETE_RESPONSE(md5,JSON_process.problems.NO_ERROR));
+                        send(JSON_process.DIRECTORY_DELETE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
                     } else {
-                        send(JSON_process.DIRECTORY_DELETE_RESPONSE(md5,JSON_process.problems.DELETE_DIR_ERROR));
+                        send(JSON_process.DIRECTORY_DELETE_RESPONSE(pathName,JSON_process.problems.DELETE_DIR_ERROR));
                     }
                     break;
 
 
                 case "DIRECTORY_CREATE_REQUEST":
-//					fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-//					md5 = (String) fileDescriptor.get("md5");
-//					timestamp = (long) fileDescriptor.get("lastModified");
-//					size = (long) fileDescriptor.get("fileSize");
+                	System.out.println("in directory create");
                     pathName = (String) obj.get("pathName");
-//                    file = new File(pathName);
                     System.out.println(pathName);
                     if (this.fileSystemObserver.fileSystemManager.makeDirectory(pathName)) {
                         send(JSON_process.DIRECTORY_CREATE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));

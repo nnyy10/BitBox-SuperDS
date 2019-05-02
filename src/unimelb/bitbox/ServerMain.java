@@ -43,7 +43,6 @@ public class  ServerMain implements FileSystemObserver {
 
 		for (PeerConnection connection : connections) {
 			connection.send(toJSON(fileSystemEvent));
-			System.out.println("in");
 		}
 	}
 
