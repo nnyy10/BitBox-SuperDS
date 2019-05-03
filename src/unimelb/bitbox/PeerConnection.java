@@ -148,7 +148,7 @@ public class PeerConnection implements Runnable {
                     //content is useless here
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName, md5)) {
+                        if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
                             try {
                                 boolean creat_fileloader = this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
                                 if (creat_fileloader) {
@@ -170,7 +170,27 @@ public class PeerConnection implements Runnable {
                                 e.printStackTrace();
                             }
                         } else {
-                            send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.FILENAME_EXIST));
+                        	try {
+                                boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
+                                System.out.println("modify loader created:" + modify_fileloader);
+                                if(!modify_fileloader)
+                                	break;
+                                if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                                    long readLength;
+                                    if (size <= length)
+                                        readLength = size;
+                                    else
+                                        readLength = length;
+                                    System.out.println("file_byte request sent");
+                                    send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
+                                } else {
+                                    this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                                    System.out.println("file modify response sent1");
+                                    send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     } else {
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
