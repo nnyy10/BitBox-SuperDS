@@ -71,16 +71,16 @@ public class PeerConnection implements Runnable {
     public void run() {
         String line = "";
 
-        int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
-
-        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-        exec.scheduleAtFixedRate(() -> {
-            for (FileSystemEvent e : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
-                String syn;
-                syn = ServerMain.getInstance().toJSON(e);
-                send(syn);
-            }
-        }, 0, synTime, TimeUnit.SECONDS);
+//        int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
+//
+//        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+//        exec.scheduleAtFixedRate(() -> {
+//            for (FileSystemEvent e : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
+//                String syn;
+//                syn = ServerMain.getInstance().toJSON(e);
+//                send(syn);
+//            }
+//        }, 0, synTime, TimeUnit.SECONDS);
 
 
         // reads message from client until "Over" is sent 
@@ -216,7 +216,6 @@ public class PeerConnection implements Runnable {
                     System.out.println("message not recieved correctly" + md5);
                     System.out.println("message not recieved correctly" + length);
                     System.out.println("message not recieved correctly" + position);
-
 //                	System.out.println("readfile_content:"+Base64.getDecoder().decode(fileSystemObserver.fileSystemManager.readFile(md5,position,length).array()));
                     byte[] byteContent = fileSystemObserver.fileSystemManager.readFile(md5, position, length).array();
                     content = java.util.Base64.getEncoder().encodeToString(byteContent);
@@ -284,7 +283,7 @@ public class PeerConnection implements Runnable {
 
     }
 
-    public void file_create(String pathName, String md5, Long timestamp, Long size, Long length) {
+    public void file_modify(String pathName, String md5, Long timestamp, Long size, Long length) {
         try {
             boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
             System.out.println("modify loader created:" + modify_fileloader);
@@ -306,7 +305,7 @@ public class PeerConnection implements Runnable {
         }
     }
 
-    public void file_modify(String pathName, String md5, Long timestamp, Long size, Long length) {
+    public void file_create(String pathName, String md5, Long timestamp, Long size, Long length) {
 
         try {
             boolean creat_fileloader = this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
