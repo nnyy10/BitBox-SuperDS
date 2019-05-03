@@ -24,6 +24,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Timer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
@@ -66,16 +70,17 @@ public class PeerConnection implements Runnable {
 
     public void run() {
         String line = "";
-        System.out.println("in run");
-
-        new Thread(() -> {
+        
+        int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
+        
+        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+        exec.scheduleAtFixedRate(() -> {
             for (FileSystemEvent e : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
                 String syn;
                 syn = ServerMain.getInstance().toJSON(e);
                 send(syn);
             }
-        }).start();
-
+        }, 0, synTime, TimeUnit.SECONDS);
 
 
         // reads message from client until "Over" is sent 
