@@ -1,6 +1,5 @@
 package unimelb.bitbox;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -160,37 +159,37 @@ public class PeerConnection implements Runnable {
                     break;
 
 
-//                case "FILE_MODIFY_REQUEST":
-//                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-//                    md5 = (String) fileDescriptor.get("md5");
-//                    timestamp = (long) fileDescriptor.get("lastModified");
-//                    size = (long) fileDescriptor.get("fileSize");
-//                    pathName = (String) obj.get("pathName");
-//                    System.out.println("in  file modify");
-//                    if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-//                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
-//                            try {
-//                                File exit_file=new File(pathName);
-//                                exit_file.createNewFile();
-//                                long last_timestamp=exit_file.lastModified();
-//                                this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
-//                                if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,last_timestamp)) {
-//                                    if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-//                                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-//                                        //System.out.println(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-//                                    }
-//                                }
-//                            } catch (Exception e) {
-//                                e.printStackTrace();
-//                            }
-//                        } else {
-//
-//                            send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.PATHNAME_NOT_EXIST));
-//                        }
-//                    } else {
-//                        send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
-//                    }
-//                    break;
+                case "FILE_MODIFY_REQUEST":
+                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+                    md5 = (String) fileDescriptor.get("md5");
+                    timestamp = (long) fileDescriptor.get("lastModified");
+                    size = (long) fileDescriptor.get("fileSize");
+                    pathName = (String) obj.get("pathName");
+                    System.out.println("in  file modify");
+                    if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
+                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
+                            try {
+                                File exit_file=new File(pathName);
+                                exit_file.createNewFile();
+                                long last_timestamp=exit_file.lastModified();
+                                this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
+                                if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,last_timestamp)) {
+                                    if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+                                        //System.out.println(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+
+                            send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.PATHNAME_NOT_EXIST));
+                        }
+                    } else {
+                        send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
+                    }
+                    break;
                     // is here need send back a response if checkshortcut or anything else goes wrong?
 
                 case "FILE_BYTES_RESPONSE":
@@ -214,12 +213,11 @@ public class PeerConnection implements Runnable {
                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position+length, readLength));
                     } else {
                         System.out.println("file check already complete:" + pathName);
-                       fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
                        boolean cancel_fileloader=fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
                        if(cancel_fileloader){
                            System.out.println("cancel file loader sucessfull");
                        }
-                       send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
+                       send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.NO_ERROR));
                     }
                         // is there need a "else" to send back a successful response?
                     break;
