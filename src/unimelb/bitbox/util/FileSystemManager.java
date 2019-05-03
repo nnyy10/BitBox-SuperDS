@@ -547,11 +547,6 @@ public class FileSystemManager extends Thread {
 		pathName=separatorsToSystem(pathName);
 		synchronized(this) {
 			String fullPathName=root+FileSystems.getDefault().getSeparator()+pathName;
-//			System.out.println("1: " + loadingFiles.containsKey(fullPathName));
-//			System.out.println("2: " + watchedFiles.containsKey(fullPathName));
-//			System.out.println("3; "+ (watchedFiles.get(fullPathName).lastModified<=lastModified));
-//			System.out.println("local_timestamp:"+watchedFiles.get(fullPathName).lastModified);
-//			System.out.println("new_timestamp:"+lastModified);
 			if(loadingFiles.containsKey(fullPathName)) return false;
 			if(watchedFiles.containsKey(fullPathName) && watchedFiles.get(fullPathName).lastModified<=lastModified) {
 				loadingFiles.put(fullPathName, new FileLoader(fullPathName,md5,
