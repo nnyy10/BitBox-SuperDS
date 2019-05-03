@@ -70,9 +70,9 @@ public class PeerConnection implements Runnable {
 
     public void run() {
         String line = "";
-        
+
         int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
-        
+
         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(() -> {
             for (FileSystemEvent e : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
@@ -139,6 +139,7 @@ public class PeerConnection implements Runnable {
             switch (information) {
 
                 case "FILE_CREATE_REQUEST":
+                case "FILE_MODIFY_REQUEST":
                     System.out.println("in file create");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
@@ -149,28 +150,9 @@ public class PeerConnection implements Runnable {
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName, md5)) {
-                            try {
-                                boolean creat_fileloader = this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
-                                if (creat_fileloader) {
-                                    System.out.println("successful create file loader");
-                                }
-
-                                if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-                                    long readLength;
-                                    if (size <= length)
-                                        readLength = size;
-                                    else
-                                        readLength = length;
-                                    send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
-                                } else {
-                                    this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-                                    send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            file_create(pathName,md5,timestamp,size,length);
                         } else {
-                            send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.FILENAME_EXIST));
+                            file_modify(pathName,md5,timestamp,size,length);
                         }
                     } else {
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
@@ -178,44 +160,26 @@ public class PeerConnection implements Runnable {
                     break;
 
 
-                case "FILE_MODIFY_REQUEST":
-                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-                    md5 = (String) fileDescriptor.get("md5");
-                    timestamp = (long) fileDescriptor.get("lastModified");
-                    size = (long) fileDescriptor.get("fileSize");
-                    pathName = (String) obj.get("pathName");
-                    System.out.println("in  file modify");
-
-                    if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
-                            try {
-                                boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
-                                System.out.println("modify loader created:" + modify_fileloader);
-                                if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-                                    long readLength;
-                                    if (size <= length)
-                                        readLength = size;
-                                    else
-                                        readLength = length;
-                                    System.out.println("file_byte request sent");
-                                    send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
-                                } else {
-                                    this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-                                    System.out.println("file modify response sent1");
-                                    send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            System.out.println("file modify response sent2");
-                            send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.FILENAME_NOT_EXIST));
-                        }
-                    } else {
-                        System.out.println("file modify response sent3");
-                        send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
-                    }
-                    break;
+//                case "FILE_MODIFY_REQUEST":
+//                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+//                    md5 = (String) fileDescriptor.get("md5");
+//                    timestamp = (long) fileDescriptor.get("lastModified");
+//                    size = (long) fileDescriptor.get("fileSize");
+//                    pathName = (String) obj.get("pathName");
+//                    System.out.println("in  file modify");
+//
+//                    if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
+//                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
+//                            =====
+//                        } else {
+//                            System.out.println("file modify response sent2");
+//                            send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.FILENAME_NOT_EXIST));
+//                        }
+//                    } else {
+//                        System.out.println("file modify response sent3");
+//                        send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
+//                    }
+//                    break;
 
                 case "FILE_BYTES_RESPONSE":
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
@@ -330,12 +294,52 @@ public class PeerConnection implements Runnable {
         }
 
     }
+
+    public void file_create(String pathName,String md5,Long timestamp, Long size,Long length)
+    {
+        try {
+            boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
+            System.out.println("modify loader created:" + modify_fileloader);
+            if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                long readLength;
+                if (size <= length)
+                    readLength = size;
+                else
+                    readLength = length;
+                System.out.println("file_byte request sent");
+                send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
+            } else {
+                this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                System.out.println("file modify response sent1");
+                send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+      public void file_modify(String pathName,String md5,Long timestamp, Long size,Long length)
+    {
+
+        try {
+            boolean creat_fileloader = this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
+            if (creat_fileloader) {
+                System.out.println("successful create file loader");
+            }
+
+            if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                long readLength;
+                if (size <= length)
+                    readLength = size;
+                else
+                    readLength = length;
+                send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
+            } else {
+                this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
-
-
-//								String temp[]=pathName.split("\\\\");
-//								String prefix=temp[temp.length-1];
-//								String[] strArray = pathName.split("\\.");
-//								int suffixIndex = strArray.length -1;
-//								String suffix=strArray[suffixIndex];
-//								File.createTempFile(prefix,suffix);
