@@ -68,16 +68,14 @@ public class PeerConnection implements Runnable {
         String line = "";
         System.out.println("in run");
 
-        Thread synchronous = new Thread(() -> {
+        new Thread(() -> {
             for (FileSystemEvent e : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
                 String syn;
                 syn = ServerMain.getInstance().toJSON(e);
                 send(syn);
-
             }
+        }).start();
 
-        });
-        System.out.println("creat synchronous thread:" + synchronous);
 
 
         // reads message from client until "Over" is sent 
