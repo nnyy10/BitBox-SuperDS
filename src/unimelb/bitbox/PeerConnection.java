@@ -112,12 +112,10 @@ public class PeerConnection implements Runnable {
             System.out.println("cant print " + message);
             this.CloseConnection();
         }
-
     }
 
     public void implement(String str) {
         JSONParser parser = new JSONParser();
-
 
         try {
             String md5 = " ", host = " ", msg = " ", pathName = " ", content = " ";
@@ -131,13 +129,7 @@ public class PeerConnection implements Runnable {
             String information = (String) obj.get("command");
             JSONObject fileDescriptor;
 
-            /**
-             * there still exists a big problem that what is the pathName look like?
-             * does it need to be handled though JSON process or here?
-             */
-
             switch (information) {
-
                 case "FILE_CREATE_REQUEST":
                 case "FILE_MODIFY_REQUEST":
                     System.out.println("in file create");
@@ -150,15 +142,14 @@ public class PeerConnection implements Runnable {
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName, md5)) {
-                            file_create(pathName,md5,timestamp,size,length);
+                            file_create(pathName, md5, timestamp, size, length);
                         } else {
-                            file_modify(pathName,md5,timestamp,size,length);
+                            file_modify(pathName, md5, timestamp, size, length);
                         }
                     } else {
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
                     }
                     break;
-
 
 //                case "FILE_MODIFY_REQUEST":
 //                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
@@ -190,11 +181,9 @@ public class PeerConnection implements Runnable {
                     content = (String) obj.get("content");
                     position = (long) obj.get("position");
                     ByteBuffer src = ByteBuffer.wrap(java.util.Base64.getDecoder().decode(content));
-
 //                    System.out.println("decode content:"+content);
                     Boolean write_file = this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position);
                     System.out.println("write file:" + write_file);
-
                     if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
                         System.out.println("file check NOT complete:" + pathName);
                         long readLength;
@@ -295,8 +284,7 @@ public class PeerConnection implements Runnable {
 
     }
 
-    public void file_create(String pathName,String md5,Long timestamp, Long size,Long length)
-    {
+    public void file_create(String pathName, String md5, Long timestamp, Long size, Long length) {
         try {
             boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
             System.out.println("modify loader created:" + modify_fileloader);
@@ -318,8 +306,7 @@ public class PeerConnection implements Runnable {
         }
     }
 
-      public void file_modify(String pathName,String md5,Long timestamp, Long size,Long length)
-    {
+    public void file_modify(String pathName, String md5, Long timestamp, Long size, Long length) {
 
         try {
             boolean creat_fileloader = this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
