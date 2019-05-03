@@ -78,6 +78,7 @@ public class Peer
 		        	outGoingConnection = new Client(outGoingSocket);
 		        	connectionThread = new Thread(outGoingConnection);
 		        	connectionThread.start();
+
 		        }
 	        }else{
 	        	System.out.println("enter a valid input: s for server or c for client");

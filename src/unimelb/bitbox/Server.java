@@ -19,9 +19,9 @@ public class Server extends PeerConnection implements Runnable {
 		numberOfConnections++;
 		this.fileSystemObserver.add(this);
 		System.out.println("server successfully connected to " + socket.getRemoteSocketAddress().toString());
-		for(FileSystemEvent e:this.fileSystemObserver.fileSystemManager.generateSyncEvents()){
-			System.out.println(e);
-		}
+//		for(FileSystemEvent e:this.fileSystemObserver.fileSystemManager.generateSyncEvents()){
+//			System.out.println(e);
+//		}
 	}
 	
 	protected void CloseConnection(){
