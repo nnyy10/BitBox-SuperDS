@@ -34,7 +34,7 @@ public class Client extends PeerConnection implements Runnable {
 				JSONParser parser = new JSONParser();
 				JSONObject jsonMsg = (JSONObject) parser.parse(temp);
 				String jsonCommand = (String) jsonMsg.get("command");
-				JSONArray peers = new JSONArray();
+				JSONArray peers;
 				int port;
 				String host;
 				Socket outGoingSocket = null;
@@ -51,7 +51,7 @@ public class Client extends PeerConnection implements Runnable {
                 		System.out.println("Handshake response invalid, closing socket.");
                 		socket.shutdownInput();
 					case "CONNECTION_REFUSED":
-						JSONObject obj = new JSONObject();
+						JSONObject obj;
 						peers = (JSONArray) jsonMsg.get("peers");
 						for(int i = 0; i< peers.size();i++){
 							obj = (JSONObject) peers.get(i);
@@ -66,7 +66,9 @@ public class Client extends PeerConnection implements Runnable {
 								System.out.println("reconnect!!! "+"host: "+host+"port: "+port+"\n");
 								break;
 							}
-							catch (Exception e){}
+							catch (Exception e){
+								System.out.println("Try connecting to another peer");
+							}
 						}
 
 
