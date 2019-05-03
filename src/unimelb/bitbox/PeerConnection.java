@@ -1,9 +1,9 @@
 package unimelb.bitbox;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemManager;
@@ -23,6 +23,7 @@ import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
+import java.util.Base64;
 import java.util.Date;
 
 import unimelb.bitbox.util.FileSystemManager;
@@ -126,8 +127,14 @@ public class PeerConnection implements Runnable {
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
-                            try { 
-                            	this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
+                            try {
+                                this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
+                                boolean creat_fileloader=this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
+                            	if(creat_fileloader)
+                                {
+                                    System.out.println("successful create file loader");
+                                }
+
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                 	
                         			long readLength;
@@ -153,37 +160,37 @@ public class PeerConnection implements Runnable {
                     break;
 
 
-                case "FILE_MODIFY_REQUEST":
-                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-                    md5 = (String) fileDescriptor.get("md5");
-                    timestamp = (long) fileDescriptor.get("lastModified");
-                    size = (long) fileDescriptor.get("fileSize");
-                    pathName = (String) obj.get("pathName");
-                    System.out.println("in  file modify");
-                    if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
-                            try {
-                                File exit_file=new File(pathName);
-                                exit_file.createNewFile();
-                                long last_timestamp=exit_file.lastModified();
-                                this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
-                                if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,last_timestamp)) {
-                                    if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-                                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-                                        //System.out.println(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-                                    }
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-
-                            send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.PATHNAME_NOT_EXIST));
-                        }
-                    } else {
-                        send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
-                    }
-                    break;
+//                case "FILE_MODIFY_REQUEST":
+//                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+//                    md5 = (String) fileDescriptor.get("md5");
+//                    timestamp = (long) fileDescriptor.get("lastModified");
+//                    size = (long) fileDescriptor.get("fileSize");
+//                    pathName = (String) obj.get("pathName");
+//                    System.out.println("in  file modify");
+//                    if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
+//                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
+//                            try {
+//                                File exit_file=new File(pathName);
+//                                exit_file.createNewFile();
+//                                long last_timestamp=exit_file.lastModified();
+//                                this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
+//                                if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,last_timestamp)) {
+//                                    if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+//                                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+//                                        //System.out.println(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
+//                                    }
+//                                }
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                        } else {
+//
+//                            send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.PATHNAME_NOT_EXIST));
+//                        }
+//                    } else {
+//                        send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
+//                    }
+//                    break;
                     // is here need send back a response if checkshortcut or anything else goes wrong?
 
                 case "FILE_BYTES_RESPONSE":
@@ -198,6 +205,7 @@ public class PeerConnection implements Runnable {
                     this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position);
                     
                     if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
+                        System.out.println("file check NOT complete:" + pathName);
             			long readLength;
             			if(position + length + length <= size)
             				readLength = length;
@@ -205,7 +213,12 @@ public class PeerConnection implements Runnable {
             				readLength =size-position +length+length;
                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position+length, readLength));
                     } else {
+                        System.out.println("file check already complete:" + pathName);
                        fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                       boolean cancel_fileloader=fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                       if(cancel_fileloader){
+                           System.out.println("cancel file loader sucessfull");
+                       }
                        send(JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR));
                     }
                         // is there need a "else" to send back a successful response?
@@ -213,24 +226,23 @@ public class PeerConnection implements Runnable {
 
 
                 case "FILE_BYTES_REQUEST":
-                	System.out.println("in file bytes");
+                	System.out.println("send file bytes request :in file bytes");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     length = (long) obj.get("length");
+
                     position = (long) obj.get("position");
                 	System.out.println("message not recieved correctly" + md5);
                 	System.out.println("message not recieved correctly" + length);
                 	System.out.println("message not recieved correctly" + position);
-                    
 
-                	
+//                	System.out.println("readfile_content:"+Base64.getDecoder().decode(fileSystemObserver.fileSystemManager.readFile(md5,position,length).array()));
                 	byte[] byteContent = fileSystemObserver.fileSystemManager.readFile(md5,position,length).array();
                     content = java.util.Base64.getEncoder().encodeToString(byteContent);
-                    System.out.println("file byte request read content: " + content);
-                    String fileBytesResponse = JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position+length,length,content,JSON_process.problems.NO_ERROR);
+                    String fileBytesResponse = JSON_process.FILE_BYTES_RESPONSE(md5,timestamp,size,pathName,position,length,content,JSON_process.problems.NO_ERROR);
                     send(fileBytesResponse);
                     System.out.println("response sent: " + fileBytesResponse);
                     break;
@@ -244,8 +256,9 @@ public class PeerConnection implements Runnable {
                     pathName = (String) obj.get("pathName");
                     System.out.println("in  file delete");
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
-                            this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
+                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
+                            Boolean wether_ldelete=this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
+                            System.out.println("wheather delete:"+wether_ldelete);
                             send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                         } else {
                             send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.FILENAME_NOT_EXIST));
@@ -258,7 +271,7 @@ public class PeerConnection implements Runnable {
 
                 case "DIRECTORY_DELETE_REQUEST":
                 	System.out.println("in directory delete");
-                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
+//                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     pathName = (String) obj.get("pathName");
 //                    File file = new File(pathName);
                     System.out.println("");
@@ -275,13 +288,16 @@ public class PeerConnection implements Runnable {
                 case "DIRECTORY_CREATE_REQUEST":
                 	System.out.println("in directory create");
                     pathName = (String) obj.get("pathName");
-                    System.out.println(pathName);
+                    System.out.println("dictonary creat pathname:"+pathName);
                     if (this.fileSystemObserver.fileSystemManager.makeDirectory(pathName)) {
                         send(JSON_process.DIRECTORY_CREATE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
                     } else {
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.CREATE_DIR_ERROR));
                     }
                 break;
+
+                default:
+                    break;
             }
         } catch (Exception e) {
             e.printStackTrace();

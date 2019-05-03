@@ -221,7 +221,7 @@ public class JSON_process {
     public static String DIRECTORY_CREATE_RESPONSE(String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_CREATE_RESPONSE");
-        obj.put("pathName" ,"dir/subdir/"+path);
+        obj.put("pathName" ,path);
         // this needs modify to original path + modify path
         if (prob == problems.NO_ERROR){
             obj.put("message", "directory created");
@@ -252,7 +252,7 @@ public class JSON_process {
     public static String DIRECTORY_DELETE_RESPONSE(String path, problems prob){
         JSONObject obj = new JSONObject();
         obj.put("command", "DIRECTORY_DELETE_RESPONSE");
-        obj.put("pathName" ,"dir/subdir/" + path); // not sure about this.
+        obj.put("pathName" , path); // not sure about this.
         // this needs modify to original path + modify path
         if (prob == problems.NO_ERROR){
             obj.put("message", "directory deleted");
