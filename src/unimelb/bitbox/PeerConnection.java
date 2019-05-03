@@ -72,8 +72,14 @@ public class PeerConnection implements Runnable {
             try {
                 line = inputStream.readLine();
                 System.out.println("Recieved Message: " + line);
-                implement(line);
-
+                if(line != null){
+                	implement(line);
+                	
+                }else{
+                	System.out.println("The recieved message is null, closing connection.");
+                	this.CloseConnection();
+                	break;
+                }
             } catch (Exception e) {
                 this.CloseConnection();
                 break;
