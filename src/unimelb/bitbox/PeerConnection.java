@@ -127,7 +127,6 @@ public class PeerConnection implements Runnable {
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
                             try {
-                                this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
                                 boolean creat_fileloader=this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
                             	if(creat_fileloader)
                                 {
@@ -166,31 +165,38 @@ public class PeerConnection implements Runnable {
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     System.out.println("in  file modify");
+
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
+                        if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName,md5)) {
                             try {
-                                File exit_file=new File(pathName);
-                                exit_file.createNewFile();
-                                long last_timestamp=exit_file.lastModified();
-                                this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
-                                if (this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName,md5,last_timestamp)) {
-                                    if (this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
-                                        send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-                                        //System.out.println(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position, length));
-                                    }
+                                boolean creat_fileloader=this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, size);
+                                if(creat_fileloader)
+                                {
+                                    System.out.println("successful modify file loader");
+                                }
+
+                                if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                                    long readLength;
+                                    if(size <= length)
+                                        readLength = size;
+                                    else
+                                        readLength = length;
+                                    send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
+                                }
+                                else{
+                                    this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                                    send(JSON_process.FILE_CREATE_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.NO_ERROR));
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         } else {
-
-                            send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.PATHNAME_NOT_EXIST));
+                            send(JSON_process.FILE_MODIFY_RESPONSE(md5,timestamp,size,pathName,JSON_process.problems.FILENAME_NOT_EXIST));
                         }
                     } else {
-                        send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
+                        send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
                     }
                     break;
-                    // is here need send back a response if checkshortcut or anything else goes wrong?
 
                 case "FILE_BYTES_RESPONSE":
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
