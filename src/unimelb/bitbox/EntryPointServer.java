@@ -97,6 +97,7 @@ public class EntryPointServer implements Runnable{
             			tempPrlist[i]=(connections.get(i).socket.getPort());
             		}
             		JSON_process.CONNECTION_REFUSED(tempIPlist, tempPrlist);
+            		
             	}
             } catch (IOException e) {
                 if(isStopped()) {
@@ -141,5 +142,5 @@ public class EntryPointServer implements Runnable{
         } catch (IOException e) {
             throw new RuntimeException("Cannot open port " + Integer.toString(this.serverPort), e);
         }
-    } 
+    }
 }

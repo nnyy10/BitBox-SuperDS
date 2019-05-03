@@ -4,6 +4,7 @@ package unimelb.bitbox;
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -11,7 +12,7 @@ import java.io.*;
 import unimelb.bitbox.ServerMain;
 import unimelb.bitbox.PeerConnection;
 import unimelb.bitbox.JSON_process;
-
+import unimelb.bitbox.util.HostPort;
 
 
 public class Client extends PeerConnection implements Runnable {
@@ -33,16 +34,46 @@ public class Client extends PeerConnection implements Runnable {
 				JSONParser parser = new JSONParser();
 				JSONObject jsonMsg = (JSONObject) parser.parse(temp);
 				String jsonCommand = (String) jsonMsg.get("command");
-				JSONObject jsonHostPort = (JSONObject) jsonMsg.get("hostPort");
-				String jsonHost = (String) jsonHostPort.get("host");
-				String jsonPort = (String) jsonHostPort.get("host");
-				if(jsonHost == null || jsonPort==null || jsonCommand==null|| !jsonCommand.equals("HANDSHAKE_RESPONSE")) {
-                	String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
-                	outputStream.write(invalidProtocolMsg+"\n");
-                	outputStream.flush();
-                	System.out.println("Handshake response invalid, closing socket.");
-                	socket.shutdownInput();
+				JSONArray peers = new JSONArray();
+				int port;
+				String host;
+				Socket outGoingSocket = null;
+				Client outGoingConnection = null;
+				Thread connectionThread = null;
+				switch(jsonCommand){
+					case "INVALID_PROTOCOL":
+						//JSONObject jsonHostPort = (JSONObject) jsonMsg.get("hostPort");
+						//String jsonHost = (String) jsonHostPort.get("host");
+						//String jsonPort = (String) jsonHostPort.get("host");
+                		String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
+                		outputStream.write(invalidProtocolMsg+"\n");
+                		outputStream.flush();
+                		System.out.println("Handshake response invalid, closing socket.");
+                		socket.shutdownInput();
+					case "CONNECTION_REFUSED":
+						JSONObject obj = new JSONObject();
+						peers = (JSONArray) jsonMsg.get("peers");
+						for(int i = 0; i< peers.size();i++){
+							obj = (JSONObject) peers.get(i);
+							host = (String) obj.get("host");
+							port = (int) obj.get("port");
+							//HostPort newConnect = new HostPort(host, port);
+							outGoingSocket = new Socket(host, port);
+							try{
+								outGoingConnection = new Client(outGoingSocket);
+								connectionThread = new Thread(outGoingConnection);
+								connectionThread.start();
+								System.out.println("reconnect!!! "+"host: "+host+"port: "+port+"\n");
+								break;
+							}
+							catch (Exception e){}
+						}
+
+
+
+
 				}
+
 			}
 			catch (Exception e){
 				String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
