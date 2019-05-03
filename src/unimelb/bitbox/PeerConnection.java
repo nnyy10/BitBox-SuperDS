@@ -73,6 +73,7 @@ public class PeerConnection implements Runnable {
                 String syn;
                 syn = ServerMain.getInstance().toJSON(e);
                 send(syn);
+
             }
 
         });
