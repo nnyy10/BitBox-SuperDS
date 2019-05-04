@@ -11,7 +11,7 @@ public class JSON_process {
     public enum problems{
         NO_ERROR, CREATE_ERROR, UNSAFE_PATH, UNABLE_READ, DELETE_ERROR, FILE_EXISTS_WITH_MATCHING,
         MODIFY_ERROR, PATHNAME_NOT_EXIST, CREATE_DIR_ERROR,PATHNAME_EXISTS, DELETE_DIR_ERROR,FILENAME_NOT_EXIST,
-        WRITE_NOT_COMPLETE,FILENAME_EXIST
+        WRITE_NOT_COMPLETE,FILENAME_EXIST, UNKNOWN_PROBLEM
     }
 
     public static String INVALID_PROTOCOL(String invalidProtocolMessage){
@@ -138,7 +138,6 @@ public class JSON_process {
         JSONObject obj = new JSONObject();
         obj.put("command", "FILE_DELETE_RESPONSE");
         fileDescriptor(md5, timestamp, size, path, obj);
-
         if (prob == problems.NO_ERROR){
             obj.put("message",  "file deleted");
             obj.put("status", true);
@@ -148,6 +147,13 @@ public class JSON_process {
             obj.put("status", false);
         }
         else if (prob == problems.DELETE_ERROR){
+            obj.put("message", "there was a problem deleting the file");
+            obj.put("status", false);
+        }
+        else if(prob == problems.FILENAME_NOT_EXIST){
+            obj.put("message", "file doesn't exist");
+            obj.put("status", false);
+        } else {
             obj.put("message", "there was a problem deleting the file");
             obj.put("status", false);
         }

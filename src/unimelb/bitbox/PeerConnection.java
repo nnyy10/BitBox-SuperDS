@@ -90,7 +90,7 @@ public class PeerConnection implements Runnable {
         while (true) {
             try {
                 line = inputStream.readLine();
-                log.info("Recieved Message is: " + line);
+                log.info("Peer recieved message: " + line);
                 if (line != null) {
                     handleMessage(line);
                 } else {
@@ -123,13 +123,11 @@ public class PeerConnection implements Runnable {
         JSONParser parser = new JSONParser();
 
         try {
-            String md5 = "", host = "", msg = "", pathName = "", content = "";
+            String md5 = "", pathName = "", content = "";
             long size = 0;
-            long port = 0;
             long position = 0;
             long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim());
             long timestamp = 0;
-            boolean status;
             JSONObject obj = (JSONObject) parser.parse(str);
             JSONObject fileDescriptor;
             String command = (String) obj.get("command");
@@ -137,7 +135,6 @@ public class PeerConnection implements Runnable {
             
             switch (command) {
                 case "FILE_CREATE_REQUEST":
-                    System.out.println("in file create");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
@@ -203,8 +200,6 @@ public class PeerConnection implements Runnable {
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
-                    System.out.println("in  file modify");
-
                     
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                     	if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
@@ -301,97 +296,69 @@ public class PeerConnection implements Runnable {
 	                    content = java.util.Base64.getEncoder().encodeToString(byteContent);
 	                    String fileBytesResponse = JSON_process.FILE_BYTES_RESPONSE(md5, timestamp, size, pathName, position, length, content, JSON_process.problems.NO_ERROR);
 	                    send(fileBytesResponse);
-	                    System.out.println("response sent: " + fileBytesResponse);
                     }else{
                     	log.warning("The read length is bigger than file size, closing connection");
                     	this.CloseConnection();
                     }
                 	break;
                 case "FILE_DELETE_REQUEST":
-                    System.out.println("in file delete");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
                     pathName = (String) obj.get("pathName");
-                    System.out.println("in  file delete");
-                    if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
-                            Boolean wether_ldelete = this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
-                            System.out.println("wheather delete:" + wether_ldelete);
-                            send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
+                    if (fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
+                        if (fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
+                            if(fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5))
+                            	send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
+                            else
+                            	send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.DELETE_ERROR));
                         } else 
                             send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.FILENAME_NOT_EXIST));
                     } else 
                         send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
                     break;
                 case "DIRECTORY_CREATE_REQUEST":
-                    System.out.println("in directory create");
                     pathName = (String) obj.get("pathName");
-                    System.out.println("dictonary creat pathname:" + pathName);
-                    if (this.fileSystemObserver.fileSystemManager.makeDirectory(pathName)) 
+                    if (fileSystemObserver.fileSystemManager.makeDirectory(pathName)) 
                         send(JSON_process.DIRECTORY_CREATE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
                     else 
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.CREATE_DIR_ERROR));
                     break;
                 case "DIRECTORY_DELETE_REQUEST":
                     pathName = (String) obj.get("pathName");
-                    boolean successfully_deleted = this.fileSystemObserver.fileSystemManager.deleteDirectory(pathName);
-                    System.out.println(successfully_deleted);
-                    if (successfully_deleted) 
+                    if (fileSystemObserver.fileSystemManager.deleteDirectory(pathName)) 
                         send(JSON_process.DIRECTORY_DELETE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
                     else 
                         send(JSON_process.DIRECTORY_DELETE_RESPONSE(pathName, JSON_process.problems.DELETE_DIR_ERROR));
                     break;
                 case "FILE_CREATE_RESPONSE":
-                    msg = (String) obj.get("message");
-                    status = (boolean) obj.get("status");
-                    pathName = (String) obj.get("pathName");
-                    log.info("FILE_CREATE_RESPONSE path: " + pathName);
-                    log.info("FILE_CREATE_RESPONSE message: " + msg);
-                    log.info("FILE_CREATE_RESPONSE status: " + status);
+                    log.info("FILE_CREATE_RESPONSE: " + str);
                     break;
                 case "FILE_DELETE_RESPONSE":
-                    msg = (String) obj.get("message");
-                    status = (boolean) obj.get("status");
-                    pathName = (String) obj.get("pathName");
-                    log.info("FILE_DELETE_RESPONSE path: " + pathName);
-                    log.info("FILE_DELETE_RESPONSE message: " + msg);
-                    log.info("FILE_DELETE_RESPONSE status: " + status);
+                    log.info("FILE_DELETE_RESPONSE: " + str);
                     break;
                 case "FILE_MODIFY_RESPONSE":
-                    msg = (String) obj.get("message");
-                    status = (boolean) obj.get("status");
-                    pathName = (String) obj.get("pathName");
-                    log.info("FILE_MODIFY_RESPONSE path: " + pathName);
-                    log.info("FILE_MODIFY_RESPONSE message: " + msg);
-                    log.info("FILE_MODIFY_RESPONSE delete response status: " + status);
+                    log.info("FILE_MODIFY_RESPONSE: " + str);
                     break;
                 case "DIRECTORY_CREATE_RESPONSE":
-                    msg = (String) obj.get("message");
-                    status = (boolean) obj.get("status");
-                    pathName = (String) obj.get("pathName");
-                    log.info("DIRECTORY_CREATE_RESPONSE path: " + pathName);
-                    log.info("DIRECTORY_CREATE_RESPONSE message: " + msg);
-                    log.info("DIRECTORY_CREATE_RESPONSE status: " + status);
+                	log.info("DIRECTORY_CREATE_RESPONSE: " + str);
                     break;
                 case "DIRECTORY_DELETE_RESPONSE":
-                    msg = (String) obj.get("message");
-                    status = (boolean) obj.get("status");
-                    pathName = (String) obj.get("pathName");
-                    log.info("DIRECTORY_DELETE_RESPONSE path: " + pathName);
-                    log.info("DIRECTORY_DELETE_RESPONSE message: " + msg);
-                    log.info("Directory delete response status: " + status);
+                	log.info("DIRECTORY_DELETE_RESPONSE: " + str);
                     break;
                 case "INVALID_PROTOCOL":
                 	log.warning("Invalid protol recieved, closing connection");
                 	CloseConnection();
                 	break;
                 default:
+                	log.warning("Recieved command is invalid, closing connection.");
                     send(JSON_process.INVALID_PROTOCOL("Invalid command recieved, closing connection"));
+                    this.CloseConnection();
                     break;
             }
         } catch (Exception e) {
             log.warning("Error encountered parsing json");
+            send(JSON_process.INVALID_PROTOCOL("Invalid protocol recieved, closing connection"));
             this.CloseConnection();
         }
 

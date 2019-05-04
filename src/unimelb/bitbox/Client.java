@@ -23,10 +23,7 @@ public class Client extends PeerConnection implements Runnable {
 	public Client(Socket socket) {
 		super(socket);
 		
-		
-		
 		try {
-
 			String Cmesg = JSON_process.HANDSHAKE_REQUEST(this.socket.getLocalAddress().toString(), this.socket.getLocalPort());
 			outputStream.write(Cmesg+"\n");
 			outputStream.flush();
