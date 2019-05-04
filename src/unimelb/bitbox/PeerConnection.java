@@ -276,7 +276,7 @@ public class PeerConnection implements Runnable {
                         if (position + length + length <= size)
                             readLength = length;
                         else
-                            readLength = size - position + length + length;
+                            readLength = size - (position + length + length);
                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position + length, readLength));
                     } else {
                         System.out.println("file check already complete:" + pathName);
