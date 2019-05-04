@@ -43,30 +43,32 @@ public class Client extends PeerConnection implements Runnable {
 				Client outGoingConnection = null;
 				Thread connectionThread = null;
 				switch(jsonCommand){
-					case "CONNECTION_REFUSED":
-						JSONObject obj;
-						peers = (JSONArray) jsonMsg.get("peers");
-						for(int i = 0; i< peers.size();i++){
-							obj = (JSONObject) peers.get(i);
-							host = (String) obj.get("host");
-							port = (int) obj.get("port");
-							outGoingSocket = new Socket(host, port);
-							log.info("Trying to connect peer client to: " +host + ":" + port);
-							try{
-								outGoingConnection = new Client(outGoingSocket);
-								connectionThread = new Thread(outGoingConnection);
-								connectionThread.start();
-								log.info("Reconnected to: "+"host: "+host+"port: "+port+"\n");
-								break;
-							}
-							catch (Exception e){
-								log.info("Can't connect to: " + host + ":" + port);
-								log.info("Try connecting to another peer");
-							}
+				case "HANDSHAKE_RESPONSE":
+					break;
+				case "CONNECTION_REFUSED":
+					JSONObject obj;
+					peers = (JSONArray) jsonMsg.get("peers");
+					for(int i = 0; i< peers.size();i++){
+						obj = (JSONObject) peers.get(i);
+						host = (String) obj.get("host");
+						port = (int) obj.get("port");
+						outGoingSocket = new Socket(host, port);
+						log.info("Trying to connect peer client to: " +host + ":" + port);
+						try{
+							outGoingConnection = new Client(outGoingSocket);
+							connectionThread = new Thread(outGoingConnection);
+							connectionThread.start();
+							log.info("Reconnected to: "+"host: "+host+"port: "+port+"\n");
+							break;
 						}
-					default:
-                		log.info("Handshake response invalid, closing socket.");
-                		this.CloseConnection();
+						catch (Exception e){
+							log.info("Can't connect to: " + host + ":" + port);
+							log.info("Try connecting to another peer");
+						}
+					}
+				default:
+            		log.info("Handshake response invalid, closing socket.");
+            		this.CloseConnection();
 				}
 			}
 			catch (Exception e){
