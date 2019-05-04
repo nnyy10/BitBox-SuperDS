@@ -26,6 +26,8 @@ public class EntryPointServer implements Runnable{
     protected Thread runningThread = null;
     private static Logger log = Logger.getLogger(PeerConnection.class.getName());
     
+    Socket tempServerSocket = null;
+    
     String Smesg,readmesg,host; long port;
     
     protected ExecutorService threadPool =Executors.newFixedThreadPool(10);
@@ -42,13 +44,12 @@ public class EntryPointServer implements Runnable{
         }
         openServerSocket();
         while(! isStopped()){
-            Socket tempServerSocket = null;
+            tempServerSocket = null;
             try {
             	tempServerSocket = this.serverSocket.accept();
             	BufferedReader inputStream  = new BufferedReader(new InputStreamReader(tempServerSocket.getInputStream(), "UTF-8"));
             	BufferedWriter outputStream = new BufferedWriter(new OutputStreamWriter(tempServerSocket.getOutputStream(), "UTF-8"));
             	readmesg = inputStream.readLine();
-            	System.out.println("Server recieved: "+ readmesg);
             	
             	try {
             		JSONParser parser = new JSONParser();
@@ -66,13 +67,11 @@ public class EntryPointServer implements Runnable{
                     	continue;
                     }
                     
-                	System.out.println("Handshake Request Valid");
-                    
             	}catch (Exception e){
             		String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL("HANDSHAKE_REQUEST invalid");
                 	outputStream.write(invalidProtocolMsg+"\n");
                 	this.CloseConnection(inputStream, outputStream, tempServerSocket);
-                	System.out.println("Handshake request invalid, closing socket.");
+                	log.warning("Handshake request invalid, closing socket.");
                 	continue;
                 }
             
@@ -81,16 +80,16 @@ public class EntryPointServer implements Runnable{
                     try{
                 		outputStream.write(handshakeReponseMsg+"\n");
                 		outputStream.flush();
-                		System.out.println("Client accepted, sending response message: " + handshakeReponseMsg);
+                		log.info("Client accepted, sending response message: " + handshakeReponseMsg);
                 		this.threadPool.execute(new Server(tempServerSocket));
                 	} catch(Exception e){
-                		System.out.println("Client accepted but error sending handshake response, closing connection");
+                		log.warning("Client accepted but error sending handshake response, closing connection");
                 		this.CloseConnection(inputStream, outputStream, tempServerSocket);
                 		continue;
             		}
             	} 	
             	else {
-            		System.out.println("Max connection of " + Server.numberOfConnections+ " limit reached. Sending connection refused message.");
+            		log.warning("Max connection of " + Server.numberOfConnections+ " limit reached. Sending connection refused message.");
             		ArrayList<PeerConnection> connections = ServerMain.getInstance().getlist();
             		String [] tempIPlist = new String[connections.size()];
             		int [] tempPrlist = new int [connections.size()];
@@ -104,27 +103,29 @@ public class EntryPointServer implements Runnable{
             	}
             } catch (IOException e) {
                 if(isStopped()) {
-                    System.out.println("Server Stopped.") ;
+                	log.info("Server Stopped.") ;
                     break;
                 }
                 throw new RuntimeException("Error accepting client connection", e);
             }
         }
         this.threadPool.shutdown();
-        System.out.println("Server Stopped.") ;
+        log.info("Server Stopped.") ;
     }
 
 	protected void CloseConnection(BufferedReader inputStream, BufferedWriter outputStream, Socket socket){
-		System.out.println("Closing New Socket Connection");
+		log.info("Closing New Socket Connection");
+		
 		try{
         	inputStream.close();
-		}catch(Exception e){}
+		} catch(Exception e){}
 		try{
 			outputStream.close();
-		}catch(Exception e){}
+		} catch(Exception e){}
 		try{
 			socket.close();
-		}catch(Exception e){}
+		} catch(Exception e){}
+		tempServerSocket = null;
 	}
 
     private synchronized boolean isStopped() {
