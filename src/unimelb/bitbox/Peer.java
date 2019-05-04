@@ -52,7 +52,7 @@ public class Peer
 		    				outGoingConnection = new Client(outGoingSocket);
 		        			connectionThread = new Thread(outGoingConnection);
 		        			connectionThread.start();
-		        			log.info("Connected to "+"host: "+peer_pair[0]+"port: "+peer_pair[1]);
+		        			log.info("Connected to "+"host: "+peer_pair[0]+" port: "+peer_pair[1]);
 						}
 						catch (Exception e){
 							triedPeerCnt++;
@@ -60,7 +60,7 @@ public class Peer
 							log.info("Try connecting to another peer");
 						}
 					}
-					else log.info("Already connected to " + "host: "+ peer_pair[0] + "port: " + peer_pair[1]+ ":) ");
+					else log.info("Already connected to " + "host: "+ peer_pair[0] + " port: " + peer_pair[1]+ ":) ");
 	        	}
 			} else{
 				try{
@@ -68,7 +68,7 @@ public class Peer
     				outGoingConnection = new Client(outGoingSocket);
         			connectionThread = new Thread(outGoingConnection);
         			connectionThread.start();
-        			log.info("Connected to "+"host: "+peer_pair[0]+"port: "+peer_pair[1]);
+        			log.info("Connected to "+"host: "+peer_pair[0]+" port: "+peer_pair[1]);
 				}
 				catch (Exception e){
 					triedPeerCnt++;
