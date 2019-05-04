@@ -60,7 +60,7 @@ public class PeerConnection implements Runnable {
     protected void CloseConnection() {
     	exec.shutdown();
     	ErrorEncountered = true;
-        log.info("Closing Connection");
+        log.warning("Closing Connection");
         this.fileSystemObserver.remove(this);
         try {
             this.inputStream.close();
@@ -266,30 +266,22 @@ public class PeerConnection implements Runnable {
                     ByteBuffer src = ByteBuffer.wrap(java.util.Base64.getDecoder().decode(content));
                     Boolean write_file = this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position);
                     if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
-                        System.out.println("file check NOT complete:" + pathName);
                         long readLength;
                         if (position + length + length <= size)
                             readLength = length;
                         else
                             readLength = size - (position + length + length);
                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position + length, readLength));
-                    } else {
-                        System.out.println("file check already complete:" + pathName);
-                        boolean cancel_fileloader = fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-                        if (cancel_fileloader) 
-                            System.out.println("cancel file loader sucessfull");
-                        send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
-                    }
+                    } else
+                    	log.info("File transfer complete");
                     break;
                 case "FILE_BYTES_REQUEST":
-                    System.out.println("send file bytes request :in file bytes");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
                     length = (long) obj.get("length");
-
                     position = (long) obj.get("position");
                     if(position + length <= size){
 	                    byte[] byteContent = fileSystemObserver.fileSystemManager.readFile(md5, position, length).array();
@@ -298,7 +290,8 @@ public class PeerConnection implements Runnable {
 	                    send(fileBytesResponse);
                     }else{
                     	log.warning("The read length is bigger than file size, closing connection");
-                    	this.CloseConnection();
+                    	send(JSON_process.INVALID_PROTOCOL("Position + length bigger than file size invalid, closing connection"));
+                    	CloseConnection();
                     }
                 	break;
                 case "FILE_DELETE_REQUEST":
@@ -353,13 +346,13 @@ public class PeerConnection implements Runnable {
                 default:
                 	log.warning("Recieved command is invalid, closing connection.");
                     send(JSON_process.INVALID_PROTOCOL("Invalid command recieved, closing connection"));
-                    this.CloseConnection();
+                    CloseConnection();
                     break;
             }
         } catch (Exception e) {
             log.warning("Error encountered parsing json");
             send(JSON_process.INVALID_PROTOCOL("Invalid protocol recieved, closing connection"));
-            this.CloseConnection();
+            CloseConnection();
         }
 
     }
