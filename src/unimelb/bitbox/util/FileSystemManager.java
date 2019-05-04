@@ -572,7 +572,6 @@ public class FileSystemManager extends Thread {
 				boolean success = false;
 				try {
 					success = loadingFiles.get(fullPathName).cancel();
-					System.out.println("cancel success"+ success);
 					loadingFiles.remove(fullPathName);
 				} catch (IOException e) {
 					FileLoader fl = loadingFiles.get(fullPathName);

@@ -28,6 +28,7 @@ import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
@@ -35,11 +36,15 @@ import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
 
 public class PeerConnection implements Runnable {
 
+	private static Logger log = Logger.getLogger(PeerConnection.class.getName());
+	
     protected Socket socket = null;
     protected BufferedReader inputStream = null;
     protected BufferedWriter outputStream = null;
     protected ServerMain fileSystemObserver = null;
-
+    protected boolean ErrorEncountered = false;
+    protected ScheduledExecutorService exec = null;
+    
     public PeerConnection(Socket socket) {
 
         this.socket = socket;
@@ -53,19 +58,19 @@ public class PeerConnection implements Runnable {
     }
 
     protected void CloseConnection() {
-        System.out.println("Closing Connection");
+    	exec.shutdown();
+    	ErrorEncountered = true;
+        log.info("Closing Connection");
+        this.fileSystemObserver.remove(this);
         try {
             this.inputStream.close();
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
         try {
             this.outputStream.close();
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
         try {
             this.socket.close();
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
     }
 
     public void run() {
@@ -73,63 +78,64 @@ public class PeerConnection implements Runnable {
 
         int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
 
-        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+        exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(() -> {
-            for (FileSystemEvent e : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
+            for (FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
                 String syn;
-                syn = ServerMain.getInstance().toJSON(e);
+                syn = ServerMain.getInstance().FileSystemEventToJSON(event);
                 send(syn);
             }
         }, 0, synTime, TimeUnit.SECONDS);
 
-
-        // reads message from client until "Over" is sent 
         while (true) {
             try {
                 line = inputStream.readLine();
-                System.out.println("Recieved Message: " + line);
+                log.info("Recieved Message is: " + line);
                 if (line != null) {
-                    implement(line);
-
+                    handleMessage(line);
                 } else {
-                    System.out.println("The recieved message is null, closing connection.");
+                    log.info("The recieved message is null, closing connection.");
                     this.CloseConnection();
                     break;
                 }
+                if(this.ErrorEncountered)
+                	break;
             } catch (Exception e) {
                 this.CloseConnection();
                 break;
             }
         }
+        this.CloseConnection();
     }
 
     public void send(String message) {
         try {
             outputStream.write(message + "\n");
             outputStream.flush();
-            System.out.println("Sent message: " + message);
+            log.info("Peer sent message: " + message);
         } catch (Exception e) {
-            System.out.println("cant print " + message);
+            log.warning("Peer encountered ERROR when sending message: " + message);
             this.CloseConnection();
         }
     }
 
-    public void implement(String str) {
+    public void handleMessage(String str) {
         JSONParser parser = new JSONParser();
 
         try {
-            String md5 = " ", host = " ", msg = " ", pathName = " ", content = " ";
+            String md5 = "", host = "", msg = "", pathName = "", content = "";
             long size = 0;
             long port = 0;
             long position = 0;
             long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim());
             long timestamp = 0;
+            boolean status;
             JSONObject obj = (JSONObject) parser.parse(str);
-            // first JSONObject need to be deal with, and then use obj as input
-            String information = (String) obj.get("command");
             JSONObject fileDescriptor;
-
-            switch (information) {
+            String command = (String) obj.get("command");
+            log.info("Peer recieved command: " + command);
+            
+            switch (command) {
                 case "FILE_CREATE_REQUEST":
                     System.out.println("in file create");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
@@ -137,19 +143,18 @@ public class PeerConnection implements Runnable {
                     timestamp = (long) fileDescriptor.get("lastModified");
                     size = (long) fileDescriptor.get("fileSize");
                     pathName = (String) obj.get("pathName");
-                    //content is useless here
 
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
                             try {
-                                boolean creat_fileloader = this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
-                                if (creat_fileloader) {
-                                    System.out.println("successful create file loader");
-                                }
-
+                                this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                     long readLength;
-                                    if (size <= length)
+                                    if (size==0){
+                                    	this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName);
+                                    	break;
+                                    }
+                                    else if (size <= length)
                                         readLength = size;
                                     else
                                         readLength = length;
@@ -159,12 +164,13 @@ public class PeerConnection implements Runnable {
                                     send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                 }
                             } catch (Exception e) {
-                                e.printStackTrace();
+                            	log.warning("file create failed");
+                            	this.CloseConnection();
+                            	break;
                             }
-                        } else {
+                        } else if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName, md5)) {
                             try {
                                 boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
-                                System.out.println("modify loader created:" + modify_fileloader);
                                 if(!modify_fileloader)
                                     break;
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
@@ -173,16 +179,18 @@ public class PeerConnection implements Runnable {
                                         readLength = size;
                                     else
                                         readLength = length;
-                                    System.out.println("file_byte request sent");
                                     send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
                                 } else {
                                     this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-                                    System.out.println("file modify response sent1");
                                     send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                 }
                             } catch (Exception e) {
-                                e.printStackTrace();
+                            	log.warning("file create failed");
+                            	this.CloseConnection();
+                            	break;
                             }
+                        } else{
+                        	send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                         }
                     } else {
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
@@ -197,8 +205,32 @@ public class PeerConnection implements Runnable {
                     pathName = (String) obj.get("pathName");
                     System.out.println("in  file modify");
 
+                    
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
-                        if (this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
+                    	if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
+                        	try {
+                                this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
+                                if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
+                                    long readLength;
+                                    if (size==0){
+                                    	this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName);
+                                    	break;
+                                    }
+                                    else if (size <= length)
+                                        readLength = size;
+                                    else
+                                        readLength = length;
+                                    send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
+                                } else {
+                                    this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                                    send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
+                                }
+                            } catch (Exception e) {
+                            	log.warning("file create failed");
+                            	this.CloseConnection();
+                            	break;
+                            }
+                        }else if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName, md5)) {
                             try {
                                 boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
                                 System.out.println("modify loader created:" + modify_fileloader);
@@ -216,18 +248,18 @@ public class PeerConnection implements Runnable {
                                     send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                 }
                             } catch (Exception e) {
-                                e.printStackTrace();
+                            	log.warning("file modify failed");
+                            	this.CloseConnection();
+                            	break;
                             }
-                        } else {
-                            System.out.println("file modify response sent2");
-                            send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.FILENAME_NOT_EXIST));
+                        }
+                        else{
+                        	send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                         }
                     } else {
-                        System.out.println("file modify response sent3");
                         send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
                     }
                     break;
-
                 case "FILE_BYTES_RESPONSE":
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
                     md5 = (String) fileDescriptor.get("md5");
@@ -237,9 +269,7 @@ public class PeerConnection implements Runnable {
                     content = (String) obj.get("content");
                     position = (long) obj.get("position");
                     ByteBuffer src = ByteBuffer.wrap(java.util.Base64.getDecoder().decode(content));
-//                    System.out.println("decode content:"+content);
                     Boolean write_file = this.fileSystemObserver.fileSystemManager.writeFile(pathName, src, position);
-                    System.out.println("write file:" + write_file);
                     if (!this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName)) {
                         System.out.println("file check NOT complete:" + pathName);
                         long readLength;
@@ -251,14 +281,11 @@ public class PeerConnection implements Runnable {
                     } else {
                         System.out.println("file check already complete:" + pathName);
                         boolean cancel_fileloader = fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-                        if (cancel_fileloader) {
+                        if (cancel_fileloader) 
                             System.out.println("cancel file loader sucessfull");
-                        }
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                     }
                     break;
-
-
                 case "FILE_BYTES_REQUEST":
                     System.out.println("send file bytes request :in file bytes");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
@@ -269,18 +296,17 @@ public class PeerConnection implements Runnable {
                     length = (long) obj.get("length");
 
                     position = (long) obj.get("position");
-                    System.out.println("message not recieved correctly" + md5);
-                    System.out.println("message not recieved correctly" + length);
-                    System.out.println("message not recieved correctly" + position);
-//                	System.out.println("readfile_content:"+Base64.getDecoder().decode(fileSystemObserver.fileSystemManager.readFile(md5,position,length).array()));
-                    byte[] byteContent = fileSystemObserver.fileSystemManager.readFile(md5, position, length).array();
-                    content = java.util.Base64.getEncoder().encodeToString(byteContent);
-                    String fileBytesResponse = JSON_process.FILE_BYTES_RESPONSE(md5, timestamp, size, pathName, position, length, content, JSON_process.problems.NO_ERROR);
-                    send(fileBytesResponse);
-                    System.out.println("response sent: " + fileBytesResponse);
-                    break;
-
-
+                    if(position + length <= size){
+	                    byte[] byteContent = fileSystemObserver.fileSystemManager.readFile(md5, position, length).array();
+	                    content = java.util.Base64.getEncoder().encodeToString(byteContent);
+	                    String fileBytesResponse = JSON_process.FILE_BYTES_RESPONSE(md5, timestamp, size, pathName, position, length, content, JSON_process.problems.NO_ERROR);
+	                    send(fileBytesResponse);
+	                    System.out.println("response sent: " + fileBytesResponse);
+                    }else{
+                    	log.warning("The read length is bigger than file size, closing connection");
+                    	this.CloseConnection();
+                    }
+                	break;
                 case "FILE_DELETE_REQUEST":
                     System.out.println("in file delete");
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
@@ -293,47 +319,79 @@ public class PeerConnection implements Runnable {
                             Boolean wether_ldelete = this.fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5);
                             System.out.println("wheather delete:" + wether_ldelete);
                             send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
-                        } else {
+                        } else 
                             send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.FILENAME_NOT_EXIST));
-                        }
-                    } else {
+                    } else 
                         send(JSON_process.FILE_DELETE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNSAFE_PATH));
-                    }
                     break;
-
-
-                case "DIRECTORY_DELETE_REQUEST":
-                    System.out.println("in directory delete");
-//                    fileDescriptor = (JSONObject) obj.get("fileDescriptor");
-                    pathName = (String) obj.get("pathName");
-//                    File file = new File(pathName);
-                    System.out.println("");
-                    boolean successfully_deleted = this.fileSystemObserver.fileSystemManager.deleteDirectory(pathName);
-                    System.out.println(successfully_deleted);
-                    if (successfully_deleted) {
-                        send(JSON_process.DIRECTORY_DELETE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
-                    } else {
-                        send(JSON_process.DIRECTORY_DELETE_RESPONSE(pathName, JSON_process.problems.DELETE_DIR_ERROR));
-                    }
-                    break;
-
-
                 case "DIRECTORY_CREATE_REQUEST":
                     System.out.println("in directory create");
                     pathName = (String) obj.get("pathName");
                     System.out.println("dictonary creat pathname:" + pathName);
-                    if (this.fileSystemObserver.fileSystemManager.makeDirectory(pathName)) {
+                    if (this.fileSystemObserver.fileSystemManager.makeDirectory(pathName)) 
                         send(JSON_process.DIRECTORY_CREATE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
-                    } else {
+                    else 
                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.CREATE_DIR_ERROR));
-                    }
                     break;
-
+                case "DIRECTORY_DELETE_REQUEST":
+                    pathName = (String) obj.get("pathName");
+                    boolean successfully_deleted = this.fileSystemObserver.fileSystemManager.deleteDirectory(pathName);
+                    System.out.println(successfully_deleted);
+                    if (successfully_deleted) 
+                        send(JSON_process.DIRECTORY_DELETE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
+                    else 
+                        send(JSON_process.DIRECTORY_DELETE_RESPONSE(pathName, JSON_process.problems.DELETE_DIR_ERROR));
+                    break;
+                case "FILE_CREATE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    status = (boolean) obj.get("status");
+                    pathName = (String) obj.get("pathName");
+                    log.info("FILE_CREATE_RESPONSE path: " + pathName);
+                    log.info("FILE_CREATE_RESPONSE message: " + msg);
+                    log.info("FILE_CREATE_RESPONSE status: " + status);
+                    break;
+                case "FILE_DELETE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    status = (boolean) obj.get("status");
+                    pathName = (String) obj.get("pathName");
+                    log.info("FILE_DELETE_RESPONSE path: " + pathName);
+                    log.info("FILE_DELETE_RESPONSE message: " + msg);
+                    log.info("FILE_DELETE_RESPONSE status: " + status);
+                    break;
+                case "FILE_MODIFY_RESPONSE":
+                    msg = (String) obj.get("message");
+                    status = (boolean) obj.get("status");
+                    pathName = (String) obj.get("pathName");
+                    log.info("FILE_MODIFY_RESPONSE path: " + pathName);
+                    log.info("FILE_MODIFY_RESPONSE message: " + msg);
+                    log.info("FILE_MODIFY_RESPONSE delete response status: " + status);
+                    break;
+                case "DIRECTORY_CREATE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    status = (boolean) obj.get("status");
+                    pathName = (String) obj.get("pathName");
+                    log.info("DIRECTORY_CREATE_RESPONSE path: " + pathName);
+                    log.info("DIRECTORY_CREATE_RESPONSE message: " + msg);
+                    log.info("DIRECTORY_CREATE_RESPONSE status: " + status);
+                    break;
+                case "DIRECTORY_DELETE_RESPONSE":
+                    msg = (String) obj.get("message");
+                    status = (boolean) obj.get("status");
+                    pathName = (String) obj.get("pathName");
+                    log.info("DIRECTORY_DELETE_RESPONSE path: " + pathName);
+                    log.info("DIRECTORY_DELETE_RESPONSE message: " + msg);
+                    log.info("Directory delete response status: " + status);
+                    break;
+                case "INVALID_PROTOCOL":
+                	log.warning("Invalid protol recieved, closing connection");
+                	CloseConnection();
+                	break;
                 default:
+                    send(JSON_process.INVALID_PROTOCOL("Invalid command recieved, closing connection"));
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warning("Error encountered parsing json");
             this.CloseConnection();
         }
 

@@ -38,20 +38,17 @@ public class  ServerMain implements FileSystemObserver {
 
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
-		// TODO: process events
-
-		for (PeerConnection connection : connections) {
-			connection.send(toJSON(fileSystemEvent));
-		}
+		for (PeerConnection connection : connections) 
+			connection.send(FileSystemEventToJSON(fileSystemEvent));
 	}
 
-	public String toJSON(FileSystemEvent fileSystemEvent) {
+	public String FileSystemEventToJSON(FileSystemEvent fileSystemEvent) {
+		
 		switch (fileSystemEvent.event) {
 		case FILE_CREATE:
 			return  JSON_process.FILE_CREATE_REQUEST(fileSystemEvent.fileDescriptor.md5,
 					fileSystemEvent.fileDescriptor.lastModified, fileSystemEvent.fileDescriptor.fileSize,
 					fileSystemEvent.pathName);
-
 		case FILE_DELETE:
 			return JSON_process.FILE_DELETE_REQUEST(fileSystemEvent.fileDescriptor.md5,
 					fileSystemEvent.fileDescriptor.lastModified, fileSystemEvent.fileDescriptor.fileSize,
@@ -61,29 +58,13 @@ public class  ServerMain implements FileSystemObserver {
 			return JSON_process.FILE_MODIFY_REQUEST(fileSystemEvent.fileDescriptor.md5,
 					fileSystemEvent.fileDescriptor.lastModified, fileSystemEvent.fileDescriptor.fileSize,
 					fileSystemEvent.pathName);
-
 		case DIRECTORY_CREATE:
 			return JSON_process.DIRECTORY_CREATE_REQUEST(fileSystemEvent.pathName);
-
 		case DIRECTORY_DELETE:
 			return JSON_process.DIRECTORY_DELETE_REQUEST(fileSystemEvent.pathName);
 		}
 		throw new IllegalArgumentException("the file system event is invalid");
 	}
-	
-//	private String getPath(String path, String name){
-//		String[] subDirs = path.split(Pattern.quote(File.separator));
-//		String sendPath = "";
-//		if(subDirs.length>1){
-//			for(int i=1;i<subDirs.length;i++)
-//				sendPath = sendPath +subDirs[i]+"/";
-//			sendPath = sendPath + name;
-//		}else
-//			sendPath = name;
-//		return sendPath;
-//	}
-
-
 
 	public void add(PeerConnection peerConnection) {
 		if (!connections.contains(peerConnection))

@@ -1,89 +1,63 @@
 package unimelb.bitbox;
 
-import java.io.File;
 import java.io.IOException;
+
 import java.net.Socket;
-import java.nio.file.Paths;
+
 import java.security.NoSuchAlgorithmException;
+
 import java.util.Scanner;
 import java.util.logging.Logger;
-import java.util.logging.SocketHandler;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import unimelb.bitbox.util.Configuration;
-import unimelb.bitbox.util.FileSystemObserver;
 import unimelb.bitbox.EntryPointServer;
 import unimelb.bitbox.Client;
-import unimelb.bitbox.PeerConnection;
 
 
 public class Peer 
 {
 	private static Logger log = Logger.getLogger(Peer.class.getName());
     public static void main( String[] args ) throws IOException, NumberFormatException, NoSuchAlgorithmException
-    {	
-    	
-//		JSONParser parser = new JSONParser();
-//		JSONObject obj;
-//		try {
-//			obj = (JSONObject) parser.parse("{\"hello\":{\"league\":\"oflegends\"}}");
-//			JSONObject command = (JSONObject) obj.get("hello");
-//			String l= (String) command.get("league");
-//			System.out.println(l);
-//		} catch (ParseException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-        
-
+    {
     	
     	System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tc] %2$s %4$s: %5$s%n");
         log.info("BitBox Peer starting...");
         Configuration.getConfiguration();
         
         String port_string = Configuration.getConfigurationValue("port").replaceAll("\\s+","");
-        String ip_addr = Configuration.getConfigurationValue("advertisedName").replaceAll("\\s+","");
         String all_peers = Configuration.getConfigurationValue("peers").replaceAll("\\s+","");
         String[] array_of_peers = all_peers.split(","); 
-        
-        
-        String input;
-        Scanner s = new Scanner(System.in);
-        input = s.nextLine();
 
-        boolean correct = false;
-        while(!correct){
-	        if(input.equals("s") || input.equals("S")) {
-	        	correct = true;
-		        int port = Integer.parseInt(port_string);
-				System.out.println("starting server");
-		    	EntryPointServer server = new EntryPointServer(port);
-		    	new Thread(server).start();
-	    	}
-	        else if(input.equals("c") || input.equals("C")){
-	        	correct = true;
-		        String[] peer_pair;
-		        Socket outGoingSocket = null;
-		        Client outGoingConnection = null;
-		        Thread connectionThread = null; 
-		        for (String peer_string : array_of_peers) {
-					System.out.println("starting client");
-					peer_pair = peer_string.split(":");
-					System.out.println(peer_pair[0]);
-					System.out.println(peer_pair[1]);
-		    		outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
-		        	outGoingConnection = new Client(outGoingSocket);
-		        	connectionThread = new Thread(outGoingConnection);
-		        	connectionThread.start();
+        int port = Integer.parseInt(port_string);
+		
+    	EntryPointServer server = new EntryPointServer(port);
+    	new Thread(server).start();
 
-		        }
-	        }else{
-	        	System.out.println("enter a valid input: s for server or c for client");
-	        	input = s.nextLine();
-	        }
+        String[] peer_pair;
+        Socket outGoingSocket = null;
+        Client outGoingConnection = null;
+        Thread connectionThread = null; 
+        int triedPeerCnt = 0;
+        for (String peer_string : array_of_peers) {
+			peer_pair = peer_string.split(":");
+			log.info("Trying to connect peer client to: " +peer_pair[0] + ":" + peer_pair[1]);
+			try{
+	    		outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
+	        	outGoingConnection = new Client(outGoingSocket);
+	        	connectionThread = new Thread(outGoingConnection);
+	        	connectionThread.start();
+	        	log.info("Connected to "+"host: "+peer_pair[0]+"port: "+peer_pair[1]+"\n");
+			}
+			catch (Exception e){
+				triedPeerCnt++;
+				log.info("Can't connect to: " + peer_pair[0] + ":" + peer_pair[1]);
+				log.info("Try connecting to another peer");
+			}
+        }
+        
+        if(triedPeerCnt == array_of_peers.length){
+        	log.warning("Tried to connect to all peers in peer list in config file. Failed to connect to any of them.");
+        	log.warning("Update your peer list in configuration.properties file and try again");
         }
     }
 }

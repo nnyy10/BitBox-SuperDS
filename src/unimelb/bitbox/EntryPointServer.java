@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,8 +24,8 @@ public class EntryPointServer implements Runnable{
     protected ServerSocket serverSocket = null;
     protected boolean isStopped = false;
     protected Thread runningThread = null;
+    private static Logger log = Logger.getLogger(PeerConnection.class.getName());
     
-    //Variables for reading JSON messages
     String Smesg,readmesg,host; long port;
     
     protected ExecutorService threadPool =Executors.newFixedThreadPool(10);
@@ -34,6 +35,8 @@ public class EntryPointServer implements Runnable{
     }
 
     public void run(){
+    	log.info("Starting server");
+    	
         synchronized(this){
             this.runningThread = Thread.currentThread();
         }
@@ -55,18 +58,18 @@ public class EntryPointServer implements Runnable{
                     String jsonHost = (String) jsonHostPort.get("host");
                     String jsonPort = (String) jsonHostPort.get("host");
                     if(jsonHost == null || jsonPort==null || jsonCommand==null|| !jsonCommand.equals("HANDSHAKE_REQUEST")) {
-                    	String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
+                    	String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL("HANDSHAKE_REQUEST invalid");
                     	outputStream.write(invalidProtocolMsg+"\n");
                     	outputStream.flush();
                     	this.CloseConnection(inputStream, outputStream, tempServerSocket);
-                    	System.out.println("Handshake request invalid, closing socket.");
+                    	log.warning("Handshake request invalid, closing socket.");
                     	continue;
                     }
                     
                 	System.out.println("Handshake Request Valid");
                     
             	}catch (Exception e){
-            		String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
+            		String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL("HANDSHAKE_REQUEST invalid");
                 	outputStream.write(invalidProtocolMsg+"\n");
                 	this.CloseConnection(inputStream, outputStream, tempServerSocket);
                 	System.out.println("Handshake request invalid, closing socket.");
@@ -106,7 +109,6 @@ public class EntryPointServer implements Runnable{
                 }
                 throw new RuntimeException("Error accepting client connection", e);
             }
-            
         }
         this.threadPool.shutdown();
         System.out.println("Server Stopped.") ;
@@ -116,11 +118,13 @@ public class EntryPointServer implements Runnable{
 		System.out.println("Closing New Socket Connection");
 		try{
         	inputStream.close();
-        	outputStream.close();
-        	socket.close();
-        } catch(Exception e){
-        	e.printStackTrace();
-        }
+		}catch(Exception e){}
+		try{
+			outputStream.close();
+		}catch(Exception e){}
+		try{
+			socket.close();
+		}catch(Exception e){}
 	}
 
     private synchronized boolean isStopped() {

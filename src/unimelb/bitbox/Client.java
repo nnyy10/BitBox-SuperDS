@@ -3,6 +3,7 @@ package unimelb.bitbox;
 //A Java program for a Server 
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -16,9 +17,12 @@ import unimelb.bitbox.util.HostPort;
 
 
 public class Client extends PeerConnection implements Runnable {
+	
+	private static Logger log = Logger.getLogger(Client.class.getName());
+	
 	public Client(Socket socket) {
 		super(socket);
-		this.fileSystemObserver.add(this);
+		
 		
 		
 		try {
@@ -26,10 +30,8 @@ public class Client extends PeerConnection implements Runnable {
 			String Cmesg = JSON_process.HANDSHAKE_REQUEST(this.socket.getLocalAddress().toString(), this.socket.getLocalPort());
 			outputStream.write(Cmesg+"\n");
 			outputStream.flush();
-			System.out.println("Client sent: " + Cmesg);
 		
 			String temp = inputStream.readLine();
-			System.out.println("Client recieved:"+temp);
 			try {
 				JSONParser parser = new JSONParser();
 				JSONObject jsonMsg = (JSONObject) parser.parse(temp);
@@ -41,15 +43,6 @@ public class Client extends PeerConnection implements Runnable {
 				Client outGoingConnection = null;
 				Thread connectionThread = null;
 				switch(jsonCommand){
-					case "INVALID_PROTOCOL":
-						//JSONObject jsonHostPort = (JSONObject) jsonMsg.get("hostPort");
-						//String jsonHost = (String) jsonHostPort.get("host");
-						//String jsonPort = (String) jsonHostPort.get("host");
-                		String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
-                		outputStream.write(invalidProtocolMsg+"\n");
-                		outputStream.flush();
-                		System.out.println("Handshake response invalid, closing socket.");
-                		socket.shutdownInput();
 					case "CONNECTION_REFUSED":
 						JSONObject obj;
 						peers = (JSONArray) jsonMsg.get("peers");
@@ -57,52 +50,41 @@ public class Client extends PeerConnection implements Runnable {
 							obj = (JSONObject) peers.get(i);
 							host = (String) obj.get("host");
 							port = (int) obj.get("port");
-							//HostPort newConnect = new HostPort(host, port);
 							outGoingSocket = new Socket(host, port);
+							log.info("Trying to connect peer client to: " +host + ":" + port);
 							try{
 								outGoingConnection = new Client(outGoingSocket);
 								connectionThread = new Thread(outGoingConnection);
 								connectionThread.start();
-								System.out.println("reconnect!!! "+"host: "+host+"port: "+port+"\n");
+								log.info("Reconnected to: "+"host: "+host+"port: "+port+"\n");
 								break;
 							}
 							catch (Exception e){
-								System.out.println("Try connecting to another peer");
+								log.info("Can't connect to: " + host + ":" + port);
+								log.info("Try connecting to another peer");
 							}
 						}
-
-
-
-
+					default:
+                		log.info("Handshake response invalid, closing socket.");
+                		this.CloseConnection();
 				}
-
 			}
 			catch (Exception e){
-				String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL();
+				String message = "Handshake response invalid, closing connection.";
+				String invalidProtocolMsg = JSON_process.INVALID_PROTOCOL(message);
+        		log.info(message);
         		outputStream.write(invalidProtocolMsg+"\n");
-            	System.out.println("Handshake response invalid, closing socket.");
-            	socket.shutdownInput();
+        		outputStream.flush();
+            	this.CloseConnection();
             }
 		} catch (IOException e) {
-			System.out.println("Connection FAILED.");
+			log.info("Connection FAILED.");
 			this.CloseConnection();
 		}
-		System.out.println("client successfully connected to " + socket.getRemoteSocketAddress().toString());
+		log.info("client successfully connected to " + socket.getRemoteSocketAddress().toString());
 	}
 	
 	protected void finalize() throws Throwable {
 		this.CloseConnection();
 	}
-	
-	/*protected void CloseConnection(BufferedReader inputStream, BufferedWriter outputStream, Socket socket){
-		System.out.println("Closing New Socket Connection");
-		try{
-        	inputStream.close();
-        	outputStream.close();
-        	socket.close();
-        } catch(Exception e){
-        	e.printStackTrace();
-        }
-	}*/
-
 }
