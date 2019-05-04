@@ -22,7 +22,6 @@ public class  ServerMain implements FileSystemObserver {
 
 	private ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager = new FileSystemManager(Configuration.getConfigurationValue("path").trim(), this);
-		//fileSystemManager.makeDirectory("lol");
 	}
 
 	private static ServerMain Single_instance = null;
@@ -69,7 +68,7 @@ public class  ServerMain implements FileSystemObserver {
 		case DIRECTORY_DELETE:
 			return JSON_process.DIRECTORY_DELETE_REQUEST(fileSystemEvent.pathName);
 		}
-		return "";
+		throw new IllegalArgumentException("the file system event is invalid");
 	}
 	
 //	private String getPath(String path, String name){
