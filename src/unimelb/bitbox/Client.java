@@ -59,13 +59,14 @@ public class Client extends PeerConnection implements Runnable {
 									outGoingConnection = new Client(outGoingSocket);
 									connectionThread = new Thread(outGoingConnection);
 									connectionThread.start();
-									log.info("Reconnected to: " + "host: " + host + "port: " + port + "\n");
+									log.info("Reconnected to: " + "host: " + host + "port: " + port);
 									break;
 								} catch (Exception e) {
 									log.info("Can't connect to: " + host + ":" + port);
 									log.info("Try connecting to another peer");
 								}
 							}
+							else log.info("Already connected to " + "host: "+ host + "port: " +port + ":) ");
 						}
 					}
 				default:
