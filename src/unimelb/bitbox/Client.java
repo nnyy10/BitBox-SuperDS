@@ -69,6 +69,7 @@ public class Client extends PeerConnection implements Runnable {
 				default:
             		log.info("Handshake response invalid, closing socket.");
             		this.CloseConnection();
+            		return;
 				}
 			}
 			catch (Exception e){
@@ -78,11 +79,16 @@ public class Client extends PeerConnection implements Runnable {
         		outputStream.write(invalidProtocolMsg+"\n");
         		outputStream.flush();
             	this.CloseConnection();
+            	return;
             }
 		} catch (IOException e) {
 			log.info("Connection FAILED.");
 			this.CloseConnection();
+			return;
 		}
+		
+		this.fileSystemObserver.add(this);
+		
 		log.info("client successfully connected to " + socket.getRemoteSocketAddress().toString());
 	}
 	
