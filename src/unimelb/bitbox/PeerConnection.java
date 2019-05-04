@@ -281,7 +281,7 @@ public class PeerConnection implements Runnable {
                         if (position + length + length <= size)
                             readLength = length;
                         else
-                            readLength = size - (position + length + length);
+                            readLength = size - (position + length);
                         send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, position + length, readLength));
                     } else
                     	log.info("File transfer complete");
