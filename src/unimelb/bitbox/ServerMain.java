@@ -43,7 +43,7 @@ public class  ServerMain implements FileSystemObserver {
 	}
 
 	public String FileSystemEventToJSON(FileSystemEvent fileSystemEvent) {
-		
+		System.out.println("");
 		switch (fileSystemEvent.event) {
 		case FILE_CREATE:
 			return  JSON_process.FILE_CREATE_REQUEST(fileSystemEvent.fileDescriptor.md5,
