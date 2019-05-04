@@ -144,17 +144,22 @@ public class PeerConnection implements Runnable {
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
                             try {
-                                this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
+                                if(!fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)){
+                                	send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNKNOWN_PROBLEM));
+                                	break;
+                                }
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                     long readLength;
                                     if (size==0){
-                                    	this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName);
+                                    	send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
+                                    	fileSystemObserver.fileSystemManager.checkWriteComplete(pathName);
                                     	break;
                                     }
                                     else if (size <= length)
                                         readLength = size;
                                     else
                                         readLength = length;
+                                    send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                     send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
                                 } else {
                                     this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
@@ -167,15 +172,17 @@ public class PeerConnection implements Runnable {
                             }
                         } else if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName, md5)) {
                             try {
-                                boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
-                                if(!modify_fileloader)
+                                if(!fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp)){
+                                	send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNKNOWN_PROBLEM));
                                     break;
+                                }
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                     long readLength;
                                     if (size <= length)
                                         readLength = size;
                                     else
                                         readLength = length;
+                                    send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                     send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
                                 } else {
                                     this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
@@ -204,10 +211,14 @@ public class PeerConnection implements Runnable {
                     if (this.fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                     	if(!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
                         	try {
-                                this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp);
+                                if(!this.fileSystemObserver.fileSystemManager.createFileLoader(pathName, md5, size, timestamp)){
+                                	send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.UNKNOWN_PROBLEM));
+                                	break;
+                                }
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                     long readLength;
                                     if (size==0){
+                                    	send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                     	this.fileSystemObserver.fileSystemManager.checkWriteComplete(pathName);
                                     	break;
                                     }
@@ -215,31 +226,31 @@ public class PeerConnection implements Runnable {
                                         readLength = size;
                                     else
                                         readLength = length;
+                                    send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                     send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
                                 } else {
-                                    this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
+                                    fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
                                     send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                 }
                             } catch (Exception e) {
-                            	log.warning("file create failed");
+                            	log.warning("file modify failed");
                             	this.CloseConnection();
                             	break;
                             }
                         }else if (!this.fileSystemObserver.fileSystemManager.fileNameExists(pathName, md5)) {
                             try {
-                                boolean modify_fileloader = this.fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp);
-                                System.out.println("modify loader created:" + modify_fileloader);
+                                if(!fileSystemObserver.fileSystemManager.modifyFileLoader(pathName, md5, timestamp))
+                                    break;
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                     long readLength;
                                     if (size <= length)
                                         readLength = size;
                                     else
                                         readLength = length;
-                                    System.out.println("file_byte request sent");
+                                    send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                     send(JSON_process.FILE_BYTES_REQUEST(md5, timestamp, size, pathName, 0, readLength));
                                 } else {
                                     this.fileSystemObserver.fileSystemManager.cancelFileLoader(pathName);
-                                    System.out.println("file modify response sent1");
                                     send(JSON_process.FILE_MODIFY_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                 }
                             } catch (Exception e) {

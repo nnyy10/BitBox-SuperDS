@@ -91,6 +91,9 @@ public class JSON_process {
         else if(prob == problems.UNSAFE_PATH){
             obj.put("message", "pathname already exists");
             obj.put("status", false);
+        } else{
+            obj.put("message", "File create error");
+            obj.put("status", false);
         }
         return obj.toString();
     }
