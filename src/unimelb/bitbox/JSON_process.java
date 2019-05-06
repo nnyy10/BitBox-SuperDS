@@ -25,14 +25,12 @@ public class JSON_process {
         obj.put("message",  "connection limit reached");
         obj.put("command", "CONNECTION_REFUSED");
         JSONArray list = new JSONArray();
-        
         for (int i = 0; i< host.length;i++){
             JSONObject obj2 = new JSONObject();
             obj2.put("host", host[i]);
             obj2.put("port", port[i]);
             list.add(obj2);
         }
-
         obj.put("peers", list);
         return obj.toString();
     }
@@ -253,6 +251,56 @@ public class JSON_process {
         else if (prob == problems.DELETE_DIR_ERROR){
             obj.put("message", "there was a problem deleting the directory");
             obj.put("status", false);
+        }
+        return obj.toString();
+    }
+
+    public static String LIST_PEER_REQUEST(){
+        JSONObject obj = new JSONObject();
+        obj.put("command", "LIST_PEERS_REQUEST");
+        return obj.toString();
+    }
+
+    public static String LIST_PEERS_RESPONSE(String [] host, int [] port){
+        JSONObject obj = new JSONObject();
+        obj.put("command", "LIST_PEERS_RESPONSE");
+        JSONArray list = new JSONArray();
+        for (int i = 0; i< host.length;i++){
+            JSONObject obj2 = new JSONObject();
+            obj2.put("host", host[i]);
+            obj2.put("port", port[i]);
+            list.add(obj2);
+        }
+        obj.put("peers", list);
+        return obj.toString();
+    }
+
+    public static String AUTH_REQUEST(String publicKey){
+        JSONObject obj = new JSONObject();
+        obj.put("command", "AUTH_REQUEST");
+        obj.put("identity", publicKey);
+        return obj.toString();
+    }
+
+    public static String AUTH_RESPONSE(boolean status, String SecretKey){
+        JSONObject obj = new JSONObject();
+        obj.put("command", "AUTH_RESPONSE");
+        if(status){
+            obj.put("message", "public key found");
+            obj.put("status", status);
+            //obj.put("AES128", SecretKey);
+            //not like above one;
+            // "AES128" : [BASE64 ENCODED, ENCRYPTED SECRET KEY]
+
+            /** how to deal with AES128 message,
+             * do we process encryption here?
+             * or just we transit AES128 message in but if status is false,
+             * how to solve null point Exception?
+             */
+        }
+        else{
+            obj.put("status", status);
+            obj.put("message", "public key not found");
         }
         return obj.toString();
     }
