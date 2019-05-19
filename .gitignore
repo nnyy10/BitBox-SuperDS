@@ -9,3 +9,5 @@ pom.xml
 target/*
 share/*
 .DS_Store
+bitboxclient_rsa
+bitboxclient_rsa.pub
