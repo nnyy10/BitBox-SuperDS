@@ -1,5 +1,4 @@
 package unimelb.bitbox;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -288,7 +287,7 @@ public class JSON_process {
         if(status){
             obj.put("message", "public key found");
             obj.put("status", status);
-            //obj.put("AES128", SecretKey);
+            obj.put("AES128", SecretKey);
             //not like above one;
             // "AES128" : [BASE64 ENCODED, ENCRYPTED SECRET KEY]
 
@@ -296,6 +295,7 @@ public class JSON_process {
              * do we process encryption here?
              * or just we transit AES128 message in but if status is false,
              * how to solve null point Exception?
+             *
              */
         }
         else{
@@ -303,5 +303,11 @@ public class JSON_process {
             obj.put("message", "public key not found");
         }
         return obj.toString();
+    }
+
+    public static JSONObject Payload(String str){
+        JSONObject obj = new JSONObject();
+        obj.put("payload", str);
+        return obj;
     }
 }
