@@ -11,13 +11,13 @@ import unimelb.bitbox.JSON_process;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 
-public class Server extends PeerConnection implements Runnable {
+public class PeerServer extends PeerConnection implements Runnable {
 
 	private static Logger log = Logger.getLogger(PeerConnection.class.getName());
 	
 	public static int numberOfConnections = 0;
 	
-	public Server(Socket socket) {
+	public PeerServer(Socket socket) {
 		super(socket);
 		numberOfConnections++;
 		this.fileSystemObserver.add(this);

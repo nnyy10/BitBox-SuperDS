@@ -1,5 +1,5 @@
 package unimelb.bitbox;
 
-public class Client {
+public class ClientServer {
 
 }

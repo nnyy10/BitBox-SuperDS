@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.EntryPointServer;
-import unimelb.bitbox.Client;
+import unimelb.bitbox.PeerClient;
 
 
 public class Peer 
@@ -36,7 +36,7 @@ public class Peer
 
         String[] peer_pair;
         Socket outGoingSocket = null;
-        Client outGoingConnection = null;
+        PeerClient outGoingConnection = null;
         Thread connectionThread = null; 
         int triedPeerCnt = 0;
 		ArrayList<PeerConnection> connect = ServerMain.getInstance().getlist();
@@ -49,7 +49,7 @@ public class Peer
 					if(!peer_pair[0].equals(connect.get(i).socket.getRemoteSocketAddress().toString())){
 						try{
 		    				outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
-		    				outGoingConnection = new Client(outGoingSocket);
+		    				outGoingConnection = new PeerClient(outGoingSocket);
 		        			connectionThread = new Thread(outGoingConnection);
 		        			connectionThread.start();
 		        			log.info("Connected to "+"host: "+peer_pair[0]+" port: "+peer_pair[1]);
@@ -65,7 +65,7 @@ public class Peer
 			} else{
 				try{
     				outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
-    				outGoingConnection = new Client(outGoingSocket);
+    				outGoingConnection = new PeerClient(outGoingSocket);
         			connectionThread = new Thread(outGoingConnection);
         			connectionThread.start();
         			log.info("Connected to "+"host: "+peer_pair[0]+" port: "+peer_pair[1]);

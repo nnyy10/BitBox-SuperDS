@@ -75,13 +75,13 @@ public class EntryPointServer implements Runnable{
                 	continue;
                 }
             
-            	if(Server.numberOfConnections<10) {
+            	if(PeerServer.numberOfConnections<10) {
                     String handshakeReponseMsg=JSON_process.HANDSHAKE_RESPONSE(tempServerSocket.toString(), tempServerSocket.getPort());
                     try{
                 		outputStream.write(handshakeReponseMsg+"\n");
                 		outputStream.flush();
                 		log.info("Client accepted, sending response message: " + handshakeReponseMsg);
-                		this.threadPool.execute(new Server(tempServerSocket));
+                		this.threadPool.execute(new PeerServer(tempServerSocket));
                 	} catch(Exception e){
                 		log.warning("Client accepted but error sending handshake response, closing connection");
                 		this.CloseConnection(inputStream, outputStream, tempServerSocket);
@@ -89,7 +89,7 @@ public class EntryPointServer implements Runnable{
             		}
             	} 	
             	else {
-            		log.warning("Max connection of " + Server.numberOfConnections+ " limit reached. Sending connection refused message.");
+            		log.warning("Max connection of " + PeerServer.numberOfConnections+ " limit reached. Sending connection refused message.");
             		ArrayList<PeerConnection> connections = ServerMain.getInstance().getlist();
             		String [] tempIPlist = new String[connections.size()];
             		int [] tempPrlist = new int [connections.size()];
