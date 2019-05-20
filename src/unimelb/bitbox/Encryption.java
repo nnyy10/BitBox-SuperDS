@@ -8,9 +8,15 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.io.UnsupportedEncodingException;
 import javax.crypto.SecretKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.logging.Logger;
 
@@ -20,7 +26,7 @@ public class Encryption {
 		//do i need code the Json message sending part here or this part may
 		//return more than one parameter like a status about if this works
 		//TODO generate a shared key, encrypt the shared key with the public key of the associated identity and encode it as base 64
-		Key publicKey=null;
+		PublicKey publicKey=null;
 		String LocalKey = Configuration.getConfigurationValue("identity");
 		if(LocalKey.contains(identity)){
 			String[] substr = LocalKey.split(",");
@@ -68,11 +74,10 @@ public class Encryption {
 		}catch (Exception e){
 			e.printStackTrace();
 		}
-		return null;
+//		return null;
 	}
 //		String encryptedMsg = msg;
 //		return encryptedMsg;
-	}
 	
 	static String decryptMessage(String encryptedMsg, Key sharedKey){
 		//TODO decrypt the message with the shared key
@@ -82,7 +87,7 @@ public class Encryption {
 			BASE64Decoder decoder = new BASE64Decoder();
 			byte[] c = decoder.decodeBuffer(encryptedMsg);
 			byte[] result = cipher.doFinal(c);
-			String plainText = new String(result, "UTF-8");
+			String plainText = new String(result, StandardCharsets.UTF_8);
 			return plainText;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -100,5 +105,16 @@ public class Encryption {
 		PublicKey publicKey = keyFactory.generatePublic(keySpec);
 		return publicKey;
 	}
+
+    static RSAPrivateKey get() throws Exception {
+        File privateKeyFile = new File("bitboxclient_rsa");
+        byte[] encodedKey = new byte[(int) privateKeyFile.length()];
+        new FileInputStream(privateKeyFile).read(encodedKey);
+        ByteBuffer keyBytes = new BASE64Decoder().decodeBufferToByteBuffer(encodedKey.toString());
+        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(keyBytes.array());
+        KeyFactory kf = KeyFactory.getInstance("RSA", "IBMJCEFIPS");
+        RSAPrivateKey pk = (RSAPrivateKey) kf.generatePrivate(privateKeySpec);
+        return pk;
+    }
 	
 }
