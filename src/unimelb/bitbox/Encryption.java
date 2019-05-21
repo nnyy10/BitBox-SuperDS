@@ -1,6 +1,8 @@
 package unimelb.bitbox;
 
 import com.sun.javafx.scene.traversal.Algorithm;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.pkcs.RSAPrivateKeyStructure;
 import unimelb.bitbox.util.Configuration;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -15,10 +17,12 @@ import java.io.UnsupportedEncodingException;
 import javax.crypto.SecretKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Logger;
+import org.bouncycastle.asn1.ASN1InputStream
 
 public class Encryption {
 	private static Logger log = Logger.getLogger(Encryption.class.getName());
@@ -120,14 +124,30 @@ public class Encryption {
 	}
 
     private static RSAPrivateKey getPrivateKey(String path) throws Exception {
-        File privateKeyFile = new File(path);
-        byte[] encodedKey = new byte[(int) privateKeyFile.length()];
-        new FileInputStream(privateKeyFile).read(encodedKey);
-        ByteBuffer keyBytes = ByteBuffer.wrap(java.util.Base64.getDecoder().decode(encodedKey));
-        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(keyBytes.array());
-        KeyFactory kf = KeyFactory.getInstance("RSA", "IBMJCEFIPS");
-        RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(privateKeySpec);
+		  File privateKeyFile = new File(path);
+		  byte[] encodedKey = new byte[(int) privateKeyFile.length()];
+          new FileInputStream(privateKeyFile).read(encodedKey);
+//        ByteBuffer keyBytes = ByteBuffer.wrap(java.util.Base64.getDecoder().decode(encodedKey));
+//        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(keyBytes.array());
+//        KeyFactory kf = KeyFactory.getInstance("RSA", "IBMJCEFIPS");
+//        RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(privateKeySpec);
+		byte[] keybyte = java.util.Base64.getDecoder().decode(encodedKey);
+		ASN1InputStream in=new ASN1InputStream(keybyte);
+		ASN1Primitive obj=in.readObject();
+		RSAPrivateKeyStructure pStruct=RSAPrivateKeyStructure.getInstance(obj);
+		RSAPrivateKeySpec spec=new RSAPrivateKeySpec(pStruct.getModulus(), pStruct.getPrivateExponent());
+		KeyFactory keyFactory= KeyFactory.getInstance("RSA");
+		privateKey=keyFactory.generatePrivate(spec);
         return privateKey;
     }
+
+    public static void main(String[] args) throws Exception {
+		RSAPrivateKey privateKey = getPrivateKey("bitboxclient_rsa");
+		String privatek = privateKey.toString();
+		System.out.println(privatek);
+
+	}
 	
 }
+
+
