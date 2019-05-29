@@ -1,28 +1,15 @@
 package unimelb.bitbox;
-
-import com.sun.javafx.scene.traversal.Algorithm;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.pkcs.RSAPrivateKeyStructure;
-import org.bouncycastle.jcajce.provider.asymmetric.RSA;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import unimelb.bitbox.util.Configuration;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import javax.crypto.SecretKey;
 import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPrivateKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Logger;
-import org.bouncycastle.asn1.ASN1InputStream;
 
 public class Encryption {
 	private static Logger log = Logger.getLogger(Encryption.class.getName());
@@ -113,15 +100,16 @@ public class Encryption {
 //		return msg;
 	}
 
-	private static PublicKey getPublicKey(String key) throws Exception {
-		//TODO getPublicKey from a string read from the configuration file
-		byte[] keyBytes;
-		keyBytes = java.util.Base64.getDecoder().decode(key);
-		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
-		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-		PublicKey publicKey = keyFactory.generatePublic(keySpec);
-		return publicKey;
-	}
+//	private static PublicKey getPublicKey(PublicKey key) throws Exception {
+//		//TODO getPublicKey from a string read from the configuration file
+//		byte[] keyBytes;
+//		keyBytes = java.util.Base64.getDecoder().decode(key);
+//		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+//		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+//		PublicKey publicKey = keyFactory.generatePublic(keySpec);
+//		return publicKey;
+//	}
+
 
     private static RSAPrivateKey getPrivateKey(String filename) throws Exception {
 //		File f = new File(filename);
@@ -149,7 +137,8 @@ public class Encryption {
 //		RSAPrivateKey privateKey = getPrivateKey("bitboxclient_rsa");
 //		String privatek = privateKey.toString();
 //		System.out.println(privatek);
-		String str = encryptSharedKey("derekxuan@outlook.com");
+//		String str = encryptSharedKey("derekxuan@outlook.com");
+		Key str = getPublicKey("bitboxclient_rsa.pub");
 		System.out.println(str);
 
 	}
