@@ -3,17 +3,17 @@ package unimelb.bitbox;
 import com.sun.javafx.scene.traversal.Algorithm;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.RSAPrivateKeyStructure;
+import org.bouncycastle.jcajce.provider.asymmetric.RSA;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import unimelb.bitbox.util.Configuration;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.io.UnsupportedEncodingException;
 import javax.crypto.SecretKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -22,7 +22,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Logger;
-import org.bouncycastle.asn1.ASN1InputStream
+import org.bouncycastle.asn1.ASN1InputStream;
 
 public class Encryption {
 	private static Logger log = Logger.getLogger(Encryption.class.getName());
@@ -36,8 +36,8 @@ public class Encryption {
 			String[] substr = LocalKey.split(",");
 			for (String s : substr) {
 				if (s.contains(identity)) {
-					String[] identityKey = s.split(" ");
-					publicKey = getPublicKey(identityKey[identityKey.length - 2]);
+					String identityKey = s;
+					//publicKey = getPublicKey(identityKey[-2：-1]);
 				}
 			}
 			KeyGenerator kg = KeyGenerator.getInstance("AES");
@@ -123,28 +123,34 @@ public class Encryption {
 		return publicKey;
 	}
 
-    private static RSAPrivateKey getPrivateKey(String path) throws Exception {
-		  File privateKeyFile = new File(path);
-		  byte[] encodedKey = new byte[(int) privateKeyFile.length()];
-          new FileInputStream(privateKeyFile).read(encodedKey);
-//        ByteBuffer keyBytes = ByteBuffer.wrap(java.util.Base64.getDecoder().decode(encodedKey));
-//        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(keyBytes.array());
-//        KeyFactory kf = KeyFactory.getInstance("RSA", "IBMJCEFIPS");
-//        RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(privateKeySpec);
-		byte[] keybyte = java.util.Base64.getDecoder().decode(encodedKey);
-		ASN1InputStream in=new ASN1InputStream(keybyte);
-		ASN1Primitive obj=in.readObject();
-		RSAPrivateKeyStructure pStruct=RSAPrivateKeyStructure.getInstance(obj);
-		RSAPrivateKeySpec spec=new RSAPrivateKeySpec(pStruct.getModulus(), pStruct.getPrivateExponent());
-		KeyFactory keyFactory= KeyFactory.getInstance("RSA");
-		privateKey=keyFactory.generatePrivate(spec);
-        return privateKey;
+    private static RSAPrivateKey getPrivateKey(String filename) throws Exception {
+//		File f = new File(filename);
+//		FileInputStream fis = new FileInputStream(f);
+//		DataInputStream dis = new DataInputStream(fis);
+//		byte[] keyBytes = new byte[(int) f.length()];
+//		dis.readFully(keyBytes);
+//		dis.close();
+//
+//		String temp = new String(keyBytes);
+//		String privKeyPEM = temp.replace("-----BEGIN PRIVATE KEY-----\n", "");
+//		privKeyPEM = privKeyPEM.replace("-----END PRIVATE KEY-----", "");
+//		//System.out.println("Private key\n"+privKeyPEM);
+//
+//		Base64 b64 = new Base64();
+//		byte [] decoded = b64.decode(privKeyPEM);
+//
+//		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
+//		KeyFactory kf = KeyFactory.getInstance(algorithm);
+//		return kf.generatePrivate(spec);
+		return null;
     }
 
     public static void main(String[] args) throws Exception {
-		RSAPrivateKey privateKey = getPrivateKey("bitboxclient_rsa");
-		String privatek = privateKey.toString();
-		System.out.println(privatek);
+//		RSAPrivateKey privateKey = getPrivateKey("bitboxclient_rsa");
+//		String privatek = privateKey.toString();
+//		System.out.println(privatek);
+		String str = encryptSharedKey("derekxuan@outlook.com");
+		System.out.println(str);
 
 	}
 	
