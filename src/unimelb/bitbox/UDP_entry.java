@@ -75,12 +75,12 @@ public class UDP_entry implements Runnable {
                     continue;
                 }
 
-                if (UDP_Server.numberOfConnections < 10) {
+                if (UDP_server.numberOfConnections < 10) {
                     String handshakeReponseMsg = JSON_process.HANDSHAKE_RESPONSE(dp_receive.toString(), dp_receive.getPort());
                     try {
                         this.send_HS(iAddress,handshakeReponseMsg);
                         log.info("UDP_Client accepted, sending response message: " + handshakeReponseMsg);
-                        this.threadPool.execute(new UDP_Server(ds_receive));
+                        this.threadPool.execute(new UDP_server(ds_receive));
                     } catch (Exception e) {
                         log.warning("UDP_Client accepted but error sending handshake response, closing connection");
                         this.CloseConnection(readmesg, udpport, iAddress);
@@ -88,7 +88,7 @@ public class UDP_entry implements Runnable {
                     }
                 } else {
                     //number more than 10.
-                    log.warning("Max connection of " + UDP_Server.numberOfConnections + " limit reached. Sending connection refused message.");
+                    log.warning("Max connection of " + UDP_server.numberOfConnections + " limit reached. Sending connection refused message.");
 //    connection refused
 //                    ArrayList<PeerConnection> connections = ServerMain.getInstance().getlist();
 //                    String[] tempIPlist = new String[connections.size()];
