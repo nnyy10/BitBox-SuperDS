@@ -12,11 +12,11 @@ import org.json.simple.parser.JSONParser;
 import java.io.*;
 
 
-public class UDP_Client extends UDP_peerconnection implements Runnable {
+public class UDP_client extends UDP_peerconnection implements Runnable {
 
     private static Logger log = Logger.getLogger(TCP_Client.class.getName());
 
-    public UDP_Client(DatagramSocket dsocket) {
+    public UDP_client(DatagramSocket dsocket) {
         super(dsocket);
 
         try {
