@@ -33,9 +33,11 @@ public class Encryption {
 		try {
 			PublicKey publicKey= getPublicKey(identity);
 			String LocalKey = Configuration.getConfigurationValue("identity");
+			//generating AES Key
 			KeyGenerator kg = KeyGenerator.getInstance("AES");
 			kg.init(128);
 			SecretKey secretKey = kg.generateKey();
+
 			byte[] bK = secretKey.getEncoded();
 			log.info("sent: " + Arrays.toString(bK));
 
@@ -55,6 +57,10 @@ public class Encryption {
 	
 	static String decryptSharedKey(String encryptedSharedKey,String path) {
 		try {
+			/**
+			 * the main algorithm of decryption is from
+			 * https://blog.csdn.net/xietansheng/article/details/88389515
+			 */
 			PrivateKey privateKey = getPrivateKey(path);
 			Cipher cipher = Cipher.getInstance("RSA");//java默认"RSA"="RSA/ECB/PKCS1Padding"
 			cipher.init(Cipher.DECRYPT_MODE, privateKey);
@@ -73,6 +79,10 @@ public class Encryption {
 		byte[] bytes = new byte[byteValues.length];
 		Key sharedKey = new SecretKeySpec(bytes, 0, bytes.length,"AES");
 		try{
+			/**
+			 * the main algorithm of decryption of massage is from
+			 * https://blog.csdn.net/xietansheng/article/details/88389515
+			 */
 			Cipher cipher = Cipher.getInstance("AES");//java默认"RSA"="RSA/ECB/PKCS1Padding"
 			cipher.init(Cipher.ENCRYPT_MODE, sharedKey);
 			byte[] output = cipher.doFinal(msg.getBytes());
@@ -90,6 +100,10 @@ public class Encryption {
 		byte[] bytes = new byte[byteValues.length];
 		Key sharedKey = new SecretKeySpec(bytes, 0, bytes.length,"AES");
 		try {
+			/**
+			 * the main algorithm of encryption of massage is from
+			 * https://blog.csdn.net/xietansheng/article/details/88389515
+			 */
 			Cipher cipher = Cipher.getInstance("AES");
 			cipher.init(Cipher.DECRYPT_MODE, sharedKey);
 			//BASE64Decoder decoder = new BASE64Decoder();
@@ -145,7 +159,6 @@ public class Encryption {
 			return null;
 		}
 	}
-
 
 	private static byte[] readLengthFirst(InputStream in) throws IOException {
 		int[] bytes = new int[]{ in.read(), in.read(), in.read(), in.read() };
