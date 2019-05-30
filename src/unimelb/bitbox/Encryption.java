@@ -30,7 +30,6 @@ public class Encryption {
 	private static Logger log = Logger.getLogger(Encryption.class.getName());
 
 	static String encryptSharedKey(String identity) throws Exception {
-		//TODO generate a shared key, encrypt the shared key with the public key of the associated identity and encode it as base 64
 		try {
 			PublicKey publicKey= getPublicKey(identity);
 			String LocalKey = Configuration.getConfigurationValue("identity");
@@ -54,8 +53,6 @@ public class Encryption {
 
 	
 	static String decryptSharedKey(String encryptedKey,String path) throws Exception {
-		//TODO decode the encrypted key as base 64, decrypt the key with your private key stored in bitboxclient_rsa
-		//byte[] encryptedMsg =
 		try {
 			PrivateKey privateKey = getPrivateKey(path);
 			Cipher cipher = Cipher.getInstance("RSA");//java默认"RSA"="RSA/ECB/PKCS1Padding"
@@ -71,7 +68,6 @@ public class Encryption {
 	}
 	
 	static String encryptMessage(String msg, String str){
-		//TODO encrypt the message with the shared key
 		String[] byteValues = str.substring(1, str.length() - 1).split(",");
 		byte[] bytes = new byte[byteValues.length];
 		Key sharedKey = new SecretKeySpec(bytes, 0, bytes.length,"AES");
@@ -88,7 +84,6 @@ public class Encryption {
 	}
 	
 	static String decryptMessage(String encryptedMsg, String str){
-		//TODO decrypt the message with the shared key
 		String[] byteValues = str.substring(1, str.length() - 1).split(",");
 		byte[] bytes = new byte[byteValues.length];
 		Key sharedKey = new SecretKeySpec(bytes, 0, bytes.length,"AES");
@@ -105,8 +100,7 @@ public class Encryption {
 		}
 	}
 
-	private static PublicKey getPublicKey(String identity) throws Exception {
-		//TODO getPublicKey from a string read from the configuration file
+	private static PublicKey getPublicKey(String identity) {
 		String keys = Configuration.getConfigurationValue("authorized_keys").trim();
 		String[] keylist = keys.split(",");
 
@@ -126,7 +120,10 @@ public class Encryption {
 			log.info("identity not found!");
 			return null;
 		}
-
+		/**
+		 * Public key conversion algorithm found at
+		 * https://stackoverflow.com/questions/47816938/java-ssh-rsa-string-to-public-key
+		 */
 		try {
 			InputStream stream = new ByteArrayInputStream(Base64.getDecoder().decode(RSApublicKeyString));
 			String marker = new String(readLengthFirst(stream));
@@ -157,7 +154,7 @@ public class Encryption {
 
     private static PrivateKey getPrivateKey(String filename) throws Exception {
 		/**
-		 * Key conversion algorithm found at
+		 * Private conversion algorithm found at
 		 * https://stackoverflow.com/questions/3243018/how-to-load-rsa-private-key-from-file
 		 */
 		String keyPath = filename;
@@ -169,7 +166,6 @@ public class Encryption {
 		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pemKeyPair.getPrivateKeyInfo().getEncoded());
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 		PrivateKey key = keyFactory.generatePrivate(keySpec);
-		//System.out.println(key);
 		return key;
 	}
 
