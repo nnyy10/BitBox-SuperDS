@@ -29,7 +29,7 @@ public class Encryption {
 
 	private static Logger log = Logger.getLogger(Encryption.class.getName());
 
-	static String encryptSharedKey(String identity) throws Exception {
+	static String encryptSharedKey(String identity) {
 		try {
 			PublicKey publicKey= getPublicKey(identity);
 			String LocalKey = Configuration.getConfigurationValue("identity");
@@ -45,30 +45,31 @@ public class Encryption {
 			String encryptedSharedKey = java.util.Base64.getEncoder().encodeToString(cipher.doFinal(bK));
 			return encryptedSharedKey;
 		}
-		catch (Exception e){
-			log.info("Encrypt shared key fail");
+		catch (Exception e) {
+			log.warning("Encrypt shared key failed");
+			log.warning(e.toString());
+			return null;
 		}
-		return null;
 	}
 
 	
-	static String decryptSharedKey(String encryptedKey,String path) throws Exception {
+	static String decryptSharedKey(String encryptedSharedKey,String path) {
 		try {
 			PrivateKey privateKey = getPrivateKey(path);
 			Cipher cipher = Cipher.getInstance("RSA");//java默认"RSA"="RSA/ECB/PKCS1Padding"
 			cipher.init(Cipher.DECRYPT_MODE, privateKey);
-			String sharedKey = Arrays.toString(cipher.doFinal(Base64.getDecoder().decode(encryptedKey)));
-			//String sharedKey = java.util.Base64.getEncoder().encodeToString(output);
+			String sharedKey = Arrays.toString(cipher.doFinal(Base64.getDecoder().decode(encryptedSharedKey)));
 			return sharedKey;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			log.warning("Decrypt shared key failed");
+			log.warning(e.toString());
 			return null;
 		}
 	}
 	
-	static String encryptMessage(String msg, String str){
-		String[] byteValues = str.substring(1, str.length() - 1).split(",");
+	static String encryptMessage(String msg, String sharedKeyByteString){
+		String[] byteValues = sharedKeyByteString.substring(1, sharedKeyByteString.length() - 1).split(",");
 		byte[] bytes = new byte[byteValues.length];
 		Key sharedKey = new SecretKeySpec(bytes, 0, bytes.length,"AES");
 		try{
@@ -78,7 +79,8 @@ public class Encryption {
 			String encrypteMsg = java.util.Base64.getEncoder().encodeToString(output);
 			return encrypteMsg;
 		}catch (Exception e){
-			e.printStackTrace();
+			log.warning("Encrypting the message with shared key failed");
+			log.warning(e.toString());
 			return null;
 		}
 	}
@@ -96,7 +98,9 @@ public class Encryption {
 			String plainText = new String(result, StandardCharsets.UTF_8);
 			return plainText;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			log.warning("Decrypting the message with shared key failed");
+			log.warning(e.toString());
+			return null;
 		}
 	}
 
@@ -117,9 +121,10 @@ public class Encryption {
 		}
 
 		if(!foundIdentity){
-			log.info("identity not found!");
+			log.warning("Identity not found!");
 			return null;
 		}
+
 		/**
 		 * Public key conversion algorithm found at
 		 * https://stackoverflow.com/questions/47816938/java-ssh-rsa-string-to-public-key
@@ -134,11 +139,14 @@ public class Encryption {
 			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
 			return keyFactory.generatePublic(keySpec);
-		} catch (Exception ex) {
-			throw new RuntimeException(ex);
+		} catch (Exception e) {
+			log.warning("Generating public key failed!");
+			log.warning(e.toString());
+			return null;
 		}
-
 	}
+
+
 	private static byte[] readLengthFirst(InputStream in) throws IOException {
 		int[] bytes = new int[]{ in.read(), in.read(), in.read(), in.read() };
 		int length = 0;
@@ -152,21 +160,27 @@ public class Encryption {
 		return val;
 	}
 
-    private static PrivateKey getPrivateKey(String filename) throws Exception {
+    private static PrivateKey getPrivateKey(String filename) {
 		/**
 		 * Private conversion algorithm found at
 		 * https://stackoverflow.com/questions/3243018/how-to-load-rsa-private-key-from-file
 		 */
-		String keyPath = filename;
-		BufferedReader br = new BufferedReader(new FileReader(keyPath));
-		Security.addProvider(new BouncyCastleProvider());
-		PEMParser pp = new PEMParser(br);
-		PEMKeyPair pemKeyPair = (PEMKeyPair) pp.readObject();
-		pp.close();
-		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pemKeyPair.getPrivateKeyInfo().getEncoded());
-		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-		PrivateKey key = keyFactory.generatePrivate(keySpec);
-		return key;
+		try {
+			String keyPath = filename;
+			BufferedReader br = new BufferedReader(new FileReader(keyPath));
+			Security.addProvider(new BouncyCastleProvider());
+			PEMParser pp = new PEMParser(br);
+			PEMKeyPair pemKeyPair = (PEMKeyPair) pp.readObject();
+			pp.close();
+			PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pemKeyPair.getPrivateKeyInfo().getEncoded());
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			PrivateKey key = keyFactory.generatePrivate(keySpec);
+			return key;
+		} catch (Exception e) {
+			log.warning("Generating private key failed!");
+			log.warning(e.toString());
+			return null;
+		}
 	}
 
 
