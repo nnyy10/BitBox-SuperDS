@@ -4,8 +4,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -14,7 +12,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -37,11 +34,12 @@ public class EntryPointServer implements Runnable{
     }
 
     public void run(){
-    	log.info("Starting server");
+    	log.info("Starting TCP server");
     	
         synchronized(this){
             this.runningThread = Thread.currentThread();
         }
+
         openServerSocket();
         while(! isStopped()){
             tempServerSocket = null;
@@ -75,21 +73,34 @@ public class EntryPointServer implements Runnable{
                 	continue;
                 }
             
+<<<<<<< Updated upstream
             	if(PeerServer.numberOfConnections<10) {
+=======
+            	if(TCP_Server.numberOfConnections<10) {
+>>>>>>> Stashed changes
                     String handshakeReponseMsg=JSON_process.HANDSHAKE_RESPONSE(tempServerSocket.toString(), tempServerSocket.getPort());
                     try{
                 		outputStream.write(handshakeReponseMsg+"\n");
                 		outputStream.flush();
+<<<<<<< Updated upstream
                 		log.info("Client accepted, sending response message: " + handshakeReponseMsg);
                 		this.threadPool.execute(new PeerServer(tempServerSocket));
+=======
+                		log.info("TCP_Client accepted, sending response message: " + handshakeReponseMsg);
+                		this.threadPool.execute(new TCP_Server(tempServerSocket));
+>>>>>>> Stashed changes
                 	} catch(Exception e){
-                		log.warning("Client accepted but error sending handshake response, closing connection");
+                		log.warning("TCP_Client accepted but error sending handshake response, closing connection");
                 		this.CloseConnection(inputStream, outputStream, tempServerSocket);
                 		continue;
             		}
             	} 	
             	else {
+<<<<<<< Updated upstream
             		log.warning("Max connection of " + PeerServer.numberOfConnections+ " limit reached. Sending connection refused message.");
+=======
+            		log.warning("Max connection of " + TCP_Server.numberOfConnections+ " limit reached. Sending connection refused message.");
+>>>>>>> Stashed changes
             		ArrayList<PeerConnection> connections = ServerMain.getInstance().getlist();
             		String [] tempIPlist = new String[connections.size()];
             		int [] tempPrlist = new int [connections.size()];
@@ -103,14 +114,14 @@ public class EntryPointServer implements Runnable{
             	}
             } catch (IOException e) {
                 if(isStopped()) {
-                	log.info("Server Stopped.") ;
+                	log.info("TCP_Server Stopped.") ;
                     break;
                 }
                 throw new RuntimeException("Error accepting client connection", e);
             }
         }
         this.threadPool.shutdown();
-        log.info("Server Stopped.") ;
+        log.info("TCP_Server Stopped.") ;
     }
 
 	protected void CloseConnection(BufferedReader inputStream, BufferedWriter outputStream, Socket socket){

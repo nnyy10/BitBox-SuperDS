@@ -1,5 +1,4 @@
 package unimelb.bitbox;
 
-public class Client {
-
+public class UDPserver {
 }
