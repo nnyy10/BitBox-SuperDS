@@ -1,17 +1,26 @@
 package unimelb.bitbox;
+import com.google.common.io.ByteStreams;
 import unimelb.bitbox.util.Configuration;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import java.io.*;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import javax.crypto.SecretKey;
 import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Logger;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public class Encryption {
+	private static final String SSH_MARKER = "ssh-rsa";
+
 	private static Logger log = Logger.getLogger(Encryption.class.getName());
 	static String encryptSharedKey(String identity) throws Exception {
 		//do i need code the Json message sending part here or this part may
@@ -100,16 +109,73 @@ public class Encryption {
 //		return msg;
 	}
 
-//	private static PublicKey getPublicKey(PublicKey key) throws Exception {
-//		//TODO getPublicKey from a string read from the configuration file
-//		byte[] keyBytes;
-//		keyBytes = java.util.Base64.getDecoder().decode(key);
-//		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
-//		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-//		PublicKey publicKey = keyFactory.generatePublic(keySpec);
-//		return publicKey;
-//	}
+	private static PublicKey getPublicKey(String identity) throws Exception {
+		//TODO getPublicKey from a string read from the configuration file
+		String keys = Configuration.getConfigurationValue("authorized_keys").trim();
+		String[] keylist = keys.split(",");
 
+		boolean foundIdentity = false;
+		String RSApublicKeyString = "";
+
+		for(String rsaPubKey: keylist) {
+			String[] keyComponent = rsaPubKey.split(" ");
+			if (keyComponent[2].equals(identity)) {
+				RSApublicKeyString = keyComponent[1];
+				foundIdentity = true;
+				break;
+			}
+		}
+
+		if(!foundIdentity){
+			return null;
+		}
+
+
+
+		try {
+			InputStream stream = new ByteArrayInputStream(Base64.getDecoder().decode(RSApublicKeyString));
+			String marker = new String(readLengthFirst(stream));
+			checkArgument(SSH_MARKER.equals(marker), "looking for marker %s but received %s", SSH_MARKER, marker);
+			BigInteger publicExponent = new BigInteger(readLengthFirst(stream));
+			BigInteger modulus = new BigInteger(readLengthFirst(stream));
+			RSAPublicKeySpec keySpec = new RSAPublicKeySpec(modulus, publicExponent);
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+			return keyFactory.generatePublic(keySpec);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+		/*System.out.println(RSApublicKeyString);
+		try{
+			byte[] byteKey = Base64.getDecoder().decode(RSApublicKeyString);
+			X509EncodedKeySpec keySpec = new X509EncodedKeySpec(byteKey);
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+			PublicKey pkey = keyFactory.generatePublic(keySpec);
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+*/
+/*		byte[] keyBytes;
+		keyBytes = java.util.Base64.getDecoder().decode(key);
+		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+		PublicKey publicKey = keyFactory.generatePublic(keySpec);
+		return publicKey;*/
+	}
+	private static byte[] readLengthFirst(InputStream in) throws IOException {
+		int[] bytes = new int[]{ in.read(), in.read(), in.read(), in.read() };
+		int length = 0;
+		int shift = 24;
+		for (int i = 0; i < bytes.length; i++) {
+			length += bytes[i] << shift;
+			shift -= 8;
+		}
+		byte[] val = new byte[length];
+		ByteStreams.readFully(in, val);
+		return val;
+	}
 
     private static RSAPrivateKey getPrivateKey(String filename) throws Exception {
 //		File f = new File(filename);
@@ -138,11 +204,11 @@ public class Encryption {
 //		String privatek = privateKey.toString();
 //		System.out.println(privatek);
 //		String str = encryptSharedKey("derekxuan@outlook.com");
-		Key str = getPublicKey("bitboxclient_rsa.pub");
-		System.out.println(str);
+		Key str = getPublicKey("derekxuan@outlook.com");
+		System.out.println("the key is: " + str + "finished");
 
 	}
-	
+
 }
 
 
