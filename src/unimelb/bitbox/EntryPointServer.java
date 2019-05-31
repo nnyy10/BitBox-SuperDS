@@ -17,7 +17,7 @@ import org.json.simple.parser.JSONParser;
 
 public class EntryPointServer implements Runnable{
 
-    protected int serverPort = 0;
+    protected int serverPort;
     protected ServerSocket serverSocket = null;
     protected boolean isStopped = false;
     protected Thread runningThread = null;
@@ -25,7 +25,7 @@ public class EntryPointServer implements Runnable{
     
     Socket tempServerSocket = null;
     
-    String Smesg,readmesg,host; long port;
+    String readmesg;
     
     protected ExecutorService threadPool =Executors.newFixedThreadPool(10);
 
@@ -104,7 +104,8 @@ public class EntryPointServer implements Runnable{
                 	log.info("TCP_Server Stopped.") ;
                     break;
                 }
-                throw new RuntimeException("Error accepting client connection", e);
+                this.stop();
+//                throw new RuntimeException("Error accepting client connection", e);
             }
         }
         this.threadPool.shutdown();
@@ -113,7 +114,6 @@ public class EntryPointServer implements Runnable{
 
 	protected void CloseConnection(BufferedReader inputStream, BufferedWriter outputStream, Socket socket){
 		log.info("Closing New Socket Connection");
-		
 		try{
         	inputStream.close();
 		} catch(Exception e){}
@@ -143,7 +143,7 @@ public class EntryPointServer implements Runnable{
         try {
             this.serverSocket = new ServerSocket(this.serverPort);
         } catch (IOException e) {
-            throw new RuntimeException("Cannot open port " + Integer.toString(this.serverPort), e);
+            throw new RuntimeException("Cannot open port " + this.serverPort, e);
         }
     }
 }
