@@ -197,19 +197,19 @@ public class Encryption {
 	}
 
 
-    public static void main(String[] args) throws Exception {
-		String Msg = "this is a test message";
-		//System.out.println("the key is: " + str + " finished");
-		String s = encryptSharedKey("zhouguozhi@xuandeMacBook-Air.local");
-		//System.out.println(s);
-		//Key pk = getPrivateKey("/");
-		String str = decryptSharedKey(s,"id_rsa");
-		log.info("received: " + str);
-		String TestMsg = encryptMessage(Msg, str);
-		//log.info(TestMsg);
-		String RMsg = decryptMessage(TestMsg, str);
-		System.out.println(RMsg);
-	}
+//    public static void main(String[] args) throws Exception {
+//		String Msg = "this is a test message";
+//		//System.out.println("the key is: " + str + " finished");
+//		String s = encryptSharedKey("zhouguozhi@xuandeMacBook-Air.local");
+//		//System.out.println(s);
+//		//Key pk = getPrivateKey("/");
+//		String str = decryptSharedKey(s,"id_rsa");
+//		log.info("received shared Key: " + str);
+//		String TestMsg = encryptMessage(Msg, str);
+//		//log.info(TestMsg);
+//		String RMsg = decryptMessage(TestMsg, str);
+//		System.out.println(RMsg);
+//	}
 
 }
 
