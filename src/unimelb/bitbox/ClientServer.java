@@ -18,6 +18,8 @@ import unimelb.bitbox.Encryption;
 import unimelb.bitbox.JSON_process;
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemManager;
+import unimelb.bitbox.ServerMain;
+import unimelb.bitbox.TCP_Client;
 
 import java.io.*;
 import java.net.Socket;
@@ -50,6 +52,8 @@ public class ClientServer implements Runnable{
         }
     }
 
+    private String sharedKey = Encryption.getSharedKey();
+
 
     protected int serverPort = 0;
     protected ServerSocket serverSocket = null;
@@ -72,6 +76,7 @@ public class ClientServer implements Runnable{
         synchronized (this) {
             this.runningThread = Thread.currentThread();
         }
+        String encryptedSharedKey;
 
         openServerSocket();
         while (!isStopped()) {
@@ -81,14 +86,118 @@ public class ClientServer implements Runnable{
                 BufferedReader inputStream = new BufferedReader(new InputStreamReader(tempServerSocket.getInputStream(), "UTF-8"));
                 BufferedWriter outputStream = new BufferedWriter(new OutputStreamWriter(tempServerSocket.getOutputStream(), "UTF-8"));
                 readmesg = inputStream.readLine();
+                JSONParser parser = new JSONParser();
+                JSONObject jsonMsg = (JSONObject) parser.parse(readmesg);
                 try{
-                    JSONParser parser = new JSONParser();
-                    JSONObject jsonMsg = (JSONObject) parser.parse(readmesg);
-                    String jsonCommand = (String) jsonMsg.get("command");
-                    
+                    String payloadMSG = (String) jsonMsg.get("payload");
 
+                    if(payloadMSG != null){
+                        String decryptMessage = Encryption.decryptMessage(payloadMSG,"id_rsa");
+                        JSONObject Msg = (JSONObject) parser.parse(decryptMessage);
+                        String jsonCommand = (String) Msg.get("command");
+                        switch (jsonCommand){
+                            case "LIST_PEER_REQUEST":
+                                ServerMain.getInstance().getlist();
+                                break;
+                            case "CONNECT_PEER_REQUEST":
+                                String host =(String) jsonMsg.get("host");
+                                int port = (int) jsonMsg.get("port");
 
+                                boolean alreadyConnected = false;
+                                if (Configuration.getConfigurationValue("mode").equals("tcp") ||
+                                        Configuration.getConfigurationValue("mode").equals("TCP")){
+                                    for(PeerConnection peer: ServerMain.getInstance().getlist()){
+                                        if(peer.getAddr().equals(host) && peer.getPort() == port){
+                                            alreadyConnected = true;
+                                            break;
+                                        }
+                                    }
+                                    if(alreadyConnected){
+                                        log.info("already connected");
+                                        String encryptedMsg = Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey);
+                                        send(encryptedMsg,outputStream);
+                                    }
+                                    else{
+                                        Socket try2connect = new Socket(host,port);
+                                        TCP_Client newConnection = new TCP_Client(try2connect);
 
+                                        if(newConnection.SendHandshake()){
+                                            send(Encryption.encryptSharedKey(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
+                                            CloseConnection(tempServerSocket,outputStream, inputStream);
+                                        }else{
+                                            log.warning("connect failed");
+                                            send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey),outputStream);
+                                            CloseConnection(tempServerSocket,outputStream,inputStream);
+                                        }
+
+                                    }
+                                }else{
+                                    for(PeerConnection peer: ServerMain.getInstance().getlist()){
+                                    if(peer.getAddr().equals(host) && peer.getPort() == port){
+                                        alreadyConnected = true;
+                                        break;
+                                    }
+                                }
+                                    if(alreadyConnected){
+                                        log.info("already connected");
+                                        CloseConnection(tempServerSocket,outputStream,inputStream);
+                                    }
+                                    else{
+                                        //connect in udp mode and default!
+                                    }
+                                }
+
+                                break;
+                            case "DISCONNECT_PEER_REQUEST":
+                                host =(String) jsonMsg.get("host");
+                                port = (int) jsonMsg.get("port");
+                                alreadyConnected = false;
+                                if (Configuration.getConfigurationValue("mode").equals("tcp") ||
+                                        Configuration.getConfigurationValue("mode").equals("TCP")){
+                                    for(PeerConnection peer: ServerMain.getInstance().getlist()){
+                                        if(peer.getAddr().equals(host) && peer.getPort() == port){
+                                            alreadyConnected = true;
+                                            break;
+                                        }
+                                    }
+                                    if(alreadyConnected){
+                                        //disconnect
+                                    }else {
+                                        log.warning("not connected yet");
+                                    }
+                                }
+
+                                break;
+                            default:
+                                log.warning("No such a command");
+                                CloseConnection(tempServerSocket,outputStream,inputStream);
+                        }
+                    }else{
+                        String command = (String) jsonMsg.get("command");
+                        if(command.equals("AUTH_REQUEST")){
+                            String identity = (String) jsonMsg.get("identity");
+
+                            encryptedSharedKey = Encryption.encryptSharedKey(identity, sharedKey);
+                            if(encryptedSharedKey!=null){
+                                if(!send(JSON_process.AUTH_RESPONSE(true, encryptedSharedKey),outputStream)){
+                                    log.warning("send response failed");
+                                    CloseConnection(tempServerSocket,outputStream,inputStream);
+                                }
+                                else{
+                                    log.info("send response successfully");
+                                    CloseConnection(tempServerSocket,outputStream,inputStream);
+                                }
+                            }
+                            else{
+                                log.warning("error with encryption");
+                                CloseConnection(tempServerSocket,outputStream,inputStream);
+                            }
+                        }else{
+                            log.warning("message is null or wrong");
+                            CloseConnection(tempServerSocket,outputStream,inputStream);
+                        }
+
+                    }
 
                 }
                 catch (Exception e){
