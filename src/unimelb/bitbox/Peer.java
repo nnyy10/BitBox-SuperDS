@@ -51,9 +51,11 @@ public class Peer
 							try{
 								outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
 								outGoingConnection = new TCP_Client(outGoingSocket);
-								connectionThread = new Thread(outGoingConnection);
-								connectionThread.start();
-								log.info("Connected to "+"host: "+peer_pair[0]+" port: "+peer_pair[1]);
+								if(outGoingConnection.SendHandshake()) {
+									connectionThread = new Thread(outGoingConnection);
+									connectionThread.start();
+									log.info("Connected to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
+								}
 							}
 							catch (Exception e){
 								triedPeerCnt++;
