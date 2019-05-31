@@ -1,8 +1,6 @@
 package unimelb.bitbox;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import sun.management.snmp.jvminstr.JvmOSImpl;
-import unimelb.bitbox.Encryption;
 
 @SuppressWarnings("unchecked")
 
@@ -15,12 +13,6 @@ public class JSON_process {
         WRITE_NOT_COMPLETE,FILENAME_EXIST, UNKNOWN_PROBLEM
     }
 
-    public static String CLOSE_CONNECTION(){
-        JSONObject obj = new JSONObject(String);
-        obj.put("command", "INVALID_PROTOCOL");
-        obj.put("message", invalidProtocolMessage);
-        return obj.toString();
-    }
 
     public static String INVALID_PROTOCOL(String invalidProtocolMessage){
         JSONObject obj = new JSONObject();

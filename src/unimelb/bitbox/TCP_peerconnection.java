@@ -49,11 +49,12 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
 
     @Override
     protected boolean SendCloseMessage() {
-        if(ConnectionClosed)
-            return false;
-        else{
-            this.send(JSON_process.);
-        }
+        return false;
+//        if(ConnectionClosed)
+//            return false;
+//        else{
+//            this.send(JSON_process.);
+//        }
     }
 
     public TCP_peerconnection(Socket socket) {
