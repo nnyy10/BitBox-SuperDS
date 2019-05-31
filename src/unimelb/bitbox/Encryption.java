@@ -29,7 +29,7 @@ public class Encryption {
 
 	private static Logger log = Logger.getLogger(Encryption.class.getName());
 
-	static String getSharedKey(String identity){
+	static String getSharedKey(){
 		try {
 			//generating AES Key
 			KeyGenerator kg = null;
@@ -49,13 +49,17 @@ public class Encryption {
 
 			String[] byteValues = sharedKeyByteString.substring(1, sharedKeyByteString.length() - 1).split(",");
 			byte[] bK = new byte[byteValues.length];
+			for (int i=0, len=bK.length; i<len; i++) {
+				bK[i] = Byte.parseByte(byteValues[i].trim());
+			}
 
-			log.info("sent: " + sharedKeyByteString);
 
 			Cipher cipher = Cipher.getInstance("RSA");
 			//encrypt mode
 			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 			String encryptedSharedKey = java.util.Base64.getEncoder().encodeToString(cipher.doFinal(bK));
+			for(byte b: bK)
+				System.out.println("sent"+b);
 			return encryptedSharedKey;
 		}
 		catch (Exception e) {
@@ -87,6 +91,9 @@ public class Encryption {
 	static String encryptMessage(String msg, String sharedKeyByteString){
 		String[] byteValues = sharedKeyByteString.substring(1, sharedKeyByteString.length() - 1).split(",");
 		byte[] bytes = new byte[byteValues.length];
+		for (int i=0, len=bytes.length; i<len; i++) {
+			bytes[i] = Byte.parseByte(byteValues[i].trim());
+		}
 		Key sharedKey = new SecretKeySpec(bytes, 0, bytes.length,"AES");
 		try{
 			/**
@@ -108,6 +115,9 @@ public class Encryption {
 	static String decryptMessage(String encryptedMsg, String str){
 		String[] byteValues = str.substring(1, str.length() - 1).split(",");
 		byte[] bytes = new byte[byteValues.length];
+		for (int i=0, len=bytes.length; i<len; i++) {
+			bytes[i] = Byte.parseByte(byteValues[i].trim());
+		}
 		Key sharedKey = new SecretKeySpec(bytes, 0, bytes.length,"AES");
 		try {
 			/**
@@ -209,10 +219,14 @@ public class Encryption {
 
 //    public static void main(String[] args) throws Exception {
 //		String Msg = "this is a test message";
+//		String sharedKey = getSharedKey();
+//		System.out.println(sharedKey);
 //		//System.out.println("the key is: " + str + " finished");
-//		String s = encryptSharedKey("zhouguozhi@xuandeMacBook-Air.local");
+//		String s = encryptSharedKey("zhouguozhi@xuandeMacBook-Air.local",sharedKey);
+//		System.out.println(s);
 //		//System.out.println(s);
 //		//Key pk = getPrivateKey("/");
+//
 //		String str = decryptSharedKey(s,"id_rsa");
 //		log.info("received shared Key: " + str);
 //		String TestMsg = encryptMessage(Msg, str);
