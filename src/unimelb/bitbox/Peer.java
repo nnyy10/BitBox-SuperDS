@@ -3,6 +3,7 @@ package unimelb.bitbox;
 import java.io.IOException;
 
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import java.security.NoSuchAlgorithmException;
@@ -101,7 +102,7 @@ public class Peer
 			for (String peer_string : array_of_peers) {
 				peer_pair = peer_string.split(":");
 				log.info("Trying to connect peer client to: " + peer_pair[0] + ":" + peer_pair[1]);
-				UDP_peerconnection udpPeer = new UDP_peerconnection(ds, peer_pair[0], Integer.parseInt(peer_pair[1]));
+				UDP_peerconnection udpPeer = new UDP_peerconnection(ds, InetAddress.getByName(peer_pair[0]), Integer.parseInt(peer_pair[1]));
 				udpPeer.sendHS();
 				log.info("UDP handshake sent to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
 			}

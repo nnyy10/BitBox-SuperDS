@@ -44,7 +44,7 @@ public abstract class PeerConnection {
     protected abstract void CloseConnection();
 
     public void handleMessage(String str) {
-        JSONParser parser = new JSONParser();
+        JSONParser parser =  new JSONParser();
 
         try {
             String md5 = "", pathName = "", content = "";

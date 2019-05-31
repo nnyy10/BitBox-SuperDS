@@ -2,6 +2,7 @@ package unimelb.bitbox;
 
 import java.io.*;
 import java.net.*;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,9 +26,10 @@ public class UDP_entry implements Runnable {
     private DatagramSocket ds;
     private DatagramPacket dp_receive = null;
     private DatagramPacket dp_send = null;
-
+    private String hostadd=Configuration.getConfigurationValue("advertisedName");
     private ServerMain fileSystemObserver = null;
     protected ExecutorService threadPool = Executors.newFixedThreadPool(10);
+    protected  int hostPort=Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
 
     public UDP_entry(DatagramSocket ds) {
         this.ds = ds;
@@ -44,21 +46,27 @@ public class UDP_entry implements Runnable {
         String message;
         InetAddress receieveAddr;
         int receivePort;
+        int blocksize=Integer.parseInt(Configuration.getConfigurationValue("blockSize"));
         while (!isStopped()) {
             try {
+                byte[] buffer= new byte[8192];
+                dp_receive = new DatagramPacket(buffer,buffer.length);
                 this.ds.receive(dp_receive);
+                byte[] data= new  byte[dp_receive.getLength()];
+                System.arraycopy(dp_receive.getData(),dp_receive.getOffset(),data,0,dp_receive.getLength());
                 receieveAddr = dp_receive.getAddress();
                 receivePort = dp_receive.getPort();
-                message = dp_receive.getData().toString();
+                message = new String(data);
+                System.out.println("message:"+message);
 
                 JSONParser parser = new JSONParser();
-                JSONObject obj = (JSONObject) parser.parse(message);
+                JSONObject obj = (JSONObject) parser.parse(message.trim());
                 String command = (String) obj.get("command");
 
                 switch (command) {
                     case "HANDSHAKE_REQUEST":
-                        String responseMsg = JSON_process.HANDSHAKE_RESPONSE(ds.getLocalAddress().toString(), ds.getPort());
-                        UDP_peerconnection udpPeer = new UDP_peerconnection(ds, receieveAddr.toString(), receivePort);
+                        String responseMsg = JSON_process.HANDSHAKE_RESPONSE(hostadd, hostPort);
+                        UDP_peerconnection udpPeer = new UDP_peerconnection(ds, receieveAddr, receivePort);
                         udpPeer.send(responseMsg);
                         this.fileSystemObserver.add(udpPeer);
                         log.info("UDP hs request received, response sent");

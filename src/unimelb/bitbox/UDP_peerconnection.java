@@ -12,6 +12,8 @@ import java.util.ArrayList;
 
 public class UDP_peerconnection extends PeerConnection{
 
+    protected  String hostadd=Configuration.getConfigurationValue("advertisedName");
+    protected  int hostPort=Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
     private InetAddress address;
     private int port;
     private DatagramPacket dp_send = null;
@@ -27,21 +29,16 @@ public class UDP_peerconnection extends PeerConnection{
         return port;
     }
 
-    public UDP_peerconnection(DatagramSocket ds, String address, int port) {
+    public UDP_peerconnection(DatagramSocket ds, InetAddress address, int port) {
         super();
         this.ds=ds;
         this.fileSystemObserver=ServerMain.getInstance();
-        try {
-            this.address = InetAddress.getByName(address);
-        } catch (UnknownHostException e) {
-            log.warning("address invalid");
-            log.warning(e.toString());
-        }
+        this.address = address;
         this.port = port;
     }
 
     public void sendHS(){
-        String Cmesg = JSON_process.HANDSHAKE_REQUEST(this.ds.getLocalAddress().toString(), this.ds.getLocalPort());
+        String Cmesg = JSON_process.HANDSHAKE_REQUEST(hostadd, hostPort);
         send(Cmesg);
         UDP_peerconnection.AddPeerToWaitingList(this);
     }
