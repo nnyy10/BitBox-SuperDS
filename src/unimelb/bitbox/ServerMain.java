@@ -38,6 +38,7 @@ public class  ServerMain implements FileSystemObserver {
 
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
+		log.info("size of the connections: " + connections.size());
 		for (PeerConnection connection : connections)
 			connection.send(FileSystemEventToJSON(fileSystemEvent));
 	}

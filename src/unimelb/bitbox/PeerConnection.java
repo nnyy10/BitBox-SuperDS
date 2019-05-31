@@ -35,6 +35,17 @@ import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;import javax.manag
 
 public abstract class PeerConnection {
 
+    protected String remoteAddress;
+    protected int remotePort;
+
+    public String getAddr(){
+        return remoteAddress;
+    }
+
+    public int getPort(){
+        return remotePort;
+    }
+
     protected static Logger log = Logger.getLogger(PeerConnection.class.getName());
 
     protected ServerMain fileSystemObserver = null;
@@ -50,7 +61,7 @@ public abstract class PeerConnection {
             String md5 = "", pathName = "", content = "";
             long size = 0;
             long position = 0;
-            long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim());
+            long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim()) - 2500;
             long timestamp = 0;
             JSONObject obj = (JSONObject) parser.parse(str);
             JSONObject fileDescriptor;

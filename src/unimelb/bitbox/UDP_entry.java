@@ -3,8 +3,6 @@ package unimelb.bitbox;
 import java.io.*;
 import java.net.*;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -39,15 +37,20 @@ public class UDP_entry implements Runnable {
             this.runningThread = Thread.currentThread();
         }
 
-
-
         int blocksize = Integer.parseInt(Configuration.getConfigurationValue("blockSize"));
         while (!isStopped()) {
             try {
                 byte[] buffer= new byte[blocksize];
                 dp_receive = new DatagramPacket(buffer,buffer.length);
                 this.ds.receive(dp_receive);
-                this.threadPool.execute(new Thread(() -> this.handlePacket(dp_receive)));
+
+                Runnable r = () -> this.handlePacket(dp_receive);
+                Thread thread = new Thread(r);
+                thread.run();
+//                Thread thread = new Thread(r);
+//                Runnable r = () -> this.handlePacket(dp_receive);
+//                this.threadPool.execute(r);
+
             } catch (IOException e) {
                 log.warning(e.toString());
                 this.stop();
@@ -63,7 +66,7 @@ public class UDP_entry implements Runnable {
         String message;
         InetAddress receieveAddr;
         int receivePort;
-        byte[] data= new  byte[datagramPacket.getLength()];
+        byte[] data= new byte[datagramPacket.getLength()];
         System.arraycopy(datagramPacket.getData(),datagramPacket.getOffset(),data,0,datagramPacket.getLength());
         receieveAddr = datagramPacket.getAddress();
         receivePort = datagramPacket.getPort();
@@ -88,7 +91,7 @@ public class UDP_entry implements Runnable {
                 break;
             case "HANDSHAKE_RESPONSE":
                 for(UDP_peerconnection peer: UDP_peerconnection.waitingForHandshakeConnections){
-                    if(peer.getPort() == receivePort && peer.getAddr().equals(receieveAddr)){
+                    if(peer.getPort() == receivePort && peer.getInetAddr().equals(receieveAddr)){
                         this.fileSystemObserver.add(peer);
                         UDP_peerconnection.RemovePeerToWaitingList(peer);
                         break;
@@ -98,7 +101,7 @@ public class UDP_entry implements Runnable {
             default:
                 for(PeerConnection peer: ServerMain.getInstance().getlist()){
                     UDP_peerconnection udpPeerConnection = (UDP_peerconnection) peer;
-                    if(udpPeerConnection.getPort() == receivePort && udpPeerConnection.getAddr().equals(receieveAddr)){
+                    if(udpPeerConnection.getPort() == receivePort && udpPeerConnection.getInetAddr().equals(receieveAddr)){
                         udpPeerConnection.handleMessage(message);
                         break;
                     }

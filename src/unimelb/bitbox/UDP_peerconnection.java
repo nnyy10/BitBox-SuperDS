@@ -15,26 +15,23 @@ public class UDP_peerconnection extends PeerConnection{
     protected  String hostadd=Configuration.getConfigurationValue("advertisedName");
     protected  int hostPort=Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
     private InetAddress address;
-    private int port;
     private DatagramPacket dp_send = null;
     private DatagramSocket ds;
 
     protected static ArrayList<UDP_peerconnection> waitingForHandshakeConnections = new ArrayList<>();
 
-    protected InetAddress getAddr(){
+    protected InetAddress getInetAddr(){
         return address;
     }
 
-    public int getPort(){
-        return port;
-    }
 
     public UDP_peerconnection(DatagramSocket ds, InetAddress address, int port) {
         super();
         this.ds=ds;
         this.fileSystemObserver=ServerMain.getInstance();
         this.address = address;
-        this.port = port;
+        this.remoteAddress = this.address.toString().replace("/","");
+        this.remotePort = port;
     }
 
     public static void AddPeerToWaitingList(UDP_peerconnection peer){
@@ -56,7 +53,7 @@ public class UDP_peerconnection extends PeerConnection{
     @Override
     public boolean equals(Object peer) {
         UDP_peerconnection p = (UDP_peerconnection) peer;
-        if(p.getAddr().equals(this.getAddr()) && p.getPort() == this.getPort())
+        if(p.getInetAddr().equals(this.getInetAddr()) && p.getPort() == this.getPort())
             return true;
         else
             return false;
@@ -66,9 +63,10 @@ public class UDP_peerconnection extends PeerConnection{
     public void send(String JSON_msg) {
         try {
             byte[] mes = JSON_msg.getBytes("utf-8");
-            dp_send = new DatagramPacket(mes, mes.length, address, port);
+            dp_send = new DatagramPacket(mes, mes.length, address, remotePort);
             ds.send(dp_send);
-            log.info("UDP peer sent message to host: " + address.toString() + " port: " + port + " msg:" + JSON_msg);
+            log.info("UDP peer sent message to host: " + address.toString() + " port: " + remotePort + " msg:" + JSON_msg);
+            log.info("sent message length = " + mes.length);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {

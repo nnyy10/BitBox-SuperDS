@@ -19,7 +19,6 @@ public class Peer
 	private static Logger log = Logger.getLogger(Peer.class.getName());
     public static void main( String[] args ) throws IOException, NumberFormatException, NoSuchAlgorithmException
     {
-    	
     	System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tc] %2$s %4$s: %5$s%n");
         log.info("BitBox Peer starting...");
         Configuration.getConfiguration();
@@ -88,6 +87,8 @@ public class Peer
 //-------------------UDP--------------------------------------------------------------------------------------------
 
 		else {
+			InetAddress d = InetAddress.getByName("1.1.1.1");
+			System.out.println("hehe"+d.toString().replace("/",""));
 			String port_string = Configuration.getConfigurationValue("udpPort").replaceAll("\\s+","");
 			int port = Integer.parseInt(port_string);
 

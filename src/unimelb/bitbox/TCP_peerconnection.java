@@ -50,6 +50,8 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
     public TCP_peerconnection(Socket socket) {
         super();
         this.socket = socket;
+        this.remotePort = this.socket.getPort();
+        this.remoteAddress = this.socket.getRemoteSocketAddress().toString();
         this.fileSystemObserver = ServerMain.getInstance();
         try{
             inputStream = new BufferedReader(new InputStreamReader(this.socket.getInputStream(), "UTF-8"));
