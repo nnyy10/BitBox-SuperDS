@@ -57,8 +57,7 @@ public class UDP_entry implements Runnable {
                 receieveAddr = dp_receive.getAddress();
                 receivePort = dp_receive.getPort();
                 message = new String(data);
-                System.out.println("message:"+message);
-
+                log.info("UDP peer received message from host: " + receieveAddr.toString() + " port: " + receivePort + " msg:" + message);
                 JSONParser parser = new JSONParser();
                 JSONObject obj = (JSONObject) parser.parse(message.trim());
                 String command = (String) obj.get("command");

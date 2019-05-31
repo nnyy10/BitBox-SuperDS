@@ -37,12 +37,6 @@ public class UDP_peerconnection extends PeerConnection{
         this.port = port;
     }
 
-    public void sendHS(){
-        String Cmesg = JSON_process.HANDSHAKE_REQUEST(hostadd, hostPort);
-        send(Cmesg);
-        UDP_peerconnection.AddPeerToWaitingList(this);
-    }
-
     public static void AddPeerToWaitingList(UDP_peerconnection peer){
         if(peer != null && !UDP_peerconnection.waitingForHandshakeConnections.contains(peer))
             UDP_peerconnection.waitingForHandshakeConnections.add(peer);
@@ -53,13 +47,19 @@ public class UDP_peerconnection extends PeerConnection{
             UDP_peerconnection.waitingForHandshakeConnections.remove(peer);
     }
 
+    public void sendHS(){
+        String Cmesg = JSON_process.HANDSHAKE_REQUEST(hostadd, hostPort);
+        send(Cmesg);
+        UDP_peerconnection.AddPeerToWaitingList(this);
+    }
+
     @Override
     public void send(String JSON_msg) {
         try {
             byte[] mes = JSON_msg.getBytes("utf-8");
             dp_send = new DatagramPacket(mes, mes.length, address, port);
             ds.send(dp_send);
-            log.warning("Sending handshake response");
+            log.info("UDP peer sent message to host: " + address.toString() + " port: " + port + " msg:" + mes);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {

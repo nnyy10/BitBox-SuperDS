@@ -78,7 +78,6 @@ public class Peer
 						log.info("Try connecting to another peer");
 					}
 				}
-
 			}
 
 			if(triedPeerCnt == array_of_peers.length){
