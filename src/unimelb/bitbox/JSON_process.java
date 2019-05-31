@@ -1,6 +1,7 @@
 package unimelb.bitbox;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import unimelb.bitbox.Encryption;
 
 @SuppressWarnings("unchecked")
 
@@ -291,11 +292,8 @@ public class JSON_process {
             //not like above one;
             // "AES128" : [BASE64 ENCODED, ENCRYPTED SECRET KEY]
 
-            /** how to deal with AES128 message,
-             * do we process encryption here?
-             * or just we transit AES128 message in but if status is false,
+            /**
              * how to solve null point Exception?
-             *
              */
         }
         else{
@@ -308,6 +306,12 @@ public class JSON_process {
     public static JSONObject Payload(String str){
         JSONObject obj = new JSONObject();
         obj.put("payload", str);
+        return obj;
+    }
+
+    public static JSONObject DISCONNECT(){
+        JSONObject obj = new JSONObject();
+        obj.put("command", "DISCONNECTION");
         return obj;
     }
 }
