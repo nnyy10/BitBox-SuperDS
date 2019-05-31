@@ -13,6 +13,16 @@ public class JSON_process {
         WRITE_NOT_COMPLETE,FILENAME_EXIST, UNKNOWN_PROBLEM
     }
 
+    public static String GENERATE_RESPONSE_MSG(String JSONmsg){
+        //todo
+        return "";
+    }
+
+    public static boolean RESPONSE_EQUALS(String response1, String response2){
+        //todo
+        return true;
+    }
+
     public static String INVALID_PROTOCOL(String invalidProtocolMessage){
         JSONObject obj = new JSONObject();
         obj.put("command", "INVALID_PROTOCOL");
