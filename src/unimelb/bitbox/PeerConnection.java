@@ -33,83 +33,17 @@ import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;import javax.management.modelmbean.ModelMBean;
 
 
-public abstract class PeerConnection implements Runnable {
+public abstract class PeerConnection {
 
     protected static Logger log = Logger.getLogger(PeerConnection.class.getName());
-    protected Socket socket = null;
-    protected DatagramSocket dsocket = null;
-    protected DatagramPacket dpacket = null;
-    protected int udpport =0;
-    protected InetAddress inetaddress=null;
-    protected BufferedReader inputStream = null;
-    protected BufferedWriter outputStream = null;
+
     protected ServerMain fileSystemObserver = null;
-    protected boolean ErrorEncountered = false;
-    protected ScheduledExecutorService exec = null;
-
-    public PeerConnection(Socket socket) {
-        this.socket = socket;
-        this.fileSystemObserver = ServerMain.getInstance();
-        try{
-          inputStream = new BufferedReader(new InputStreamReader(this.socket.getInputStream(), "UTF-8"));
-          outputStream = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream(), "UTF-8"));
-        } catch (IOException e) {
-            this.CloseConnection();
-        }
-    }
-
-    public PeerConnection(DatagramSocket dsocket) {
-        this.dsocket=dsocket;
-        this.fileSystemObserver=ServerMain.getInstance();
-        this.inetaddress=dsocket.getInetAddress();
-        this.udpport=dsocket.getPort();
-//        this.dpacket=dsocket.receive();
-    }
-
-
-    public abstract void run();
 
     public abstract void send(String s);
 
+    protected abstract void CloseConnection();
 
-
-    public void synchronous() {
-        int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
-
-        exec = Executors.newSingleThreadScheduledExecutor();
-        exec.scheduleAtFixedRate(() -> {
-            for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
-                String syn;
-                syn = ServerMain.getInstance().FileSystemEventToJSON(event);
-                send(syn);
-            }
-        }, 0, synTime, TimeUnit.SECONDS);
-    }
-
-
-    protected void CloseConnection() {
-        exec.shutdown();
-        ErrorEncountered = true;
-        log.warning("Closing Connection");
-        String mode=Configuration.getConfigurationValue("mode");
-        this.fileSystemObserver.remove(this);
-        try {
-            this.inputStream.close();
-        } catch (Exception e) {}
-        try {
-            this.outputStream.close();
-        } catch (Exception e) {}
-        try {
-            if(mode.equals("tcp")||mode.equals("TCP")){
-            this.socket.close();}
-            else if (mode.equals("udp")||mode.equals("UDP")) {
-            this.dsocket.close();
-            }
-        } catch (Exception e) {}
-    }
-
-
-    public  void handleMessage(String str) {
+    public void handleMessage(String str) {
         JSONParser parser = new JSONParser();
 
         try {
@@ -122,7 +56,7 @@ public abstract class PeerConnection implements Runnable {
             JSONObject fileDescriptor;
             String command = (String) obj.get("command");
             log.info("Peer recieved command: " + command);
-            
+
             switch (command) {
                 case "FILE_CREATE_REQUEST":
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");

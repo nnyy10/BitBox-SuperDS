@@ -7,67 +7,71 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 
-public class UDP_peerconnection extends PeerConnection implements Runnable{
+public class UDP_peerconnection extends PeerConnection{
 
-    public UDP_peerconnection(DatagramSocket dsocket) {
+    private InetAddress address;
+    private int port;
+    private DatagramPacket dp_send = null;
+    private DatagramSocket ds;
 
-        super(dsocket);
+    protected static ArrayList<UDP_peerconnection> waitingForHandshakeConnections = new ArrayList<>();
+
+    protected InetAddress getAddr(){
+        return address;
     }
 
+    public int getPort(){
+        return port;
+    }
 
-
-    @Override
-    public void run() {
-            String line="";
-            synchronous();
-
-
-        String udpport= Configuration.getConfigurationValue("port");
-        DatagramSocket dSocket = null;
-        DatagramPacket dPacket =null;
+    public UDP_peerconnection(DatagramSocket ds, String address, int port) {
+        super();
+        this.ds=ds;
+        this.fileSystemObserver=ServerMain.getInstance();
         try {
-            dSocket = new DatagramSocket(Integer.parseInt(udpport));
-            byte[] by = new byte[1472];
-
-            while (true) {
-                dPacket = new DatagramPacket(by, by.length);
-                dSocket.receive(dPacket);
-                byte by1[] = dPacket.getData();
-                line=by1.toString();
-                log.info("Peer recieved message: " + line);
-                if (line != null) {
-                    handleMessage(line);
-                } else {
-                    log.info("The recieved message is null, closing connection.");
-                    CloseConnection();
-                    break;
-                }
-                if (this.ErrorEncountered)
-                    break;
-            }
-        }catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            dSocket.close();
+            this.address = InetAddress.getByName(address);
+        } catch (UnknownHostException e) {
+            log.warning("address invalid");
+            log.warning(e.toString());
         }
+        this.port = port;
+    }
+
+    public void sendHS(){
+        String Cmesg = JSON_process.HANDSHAKE_REQUEST(this.ds.getLocalAddress().toString(), this.ds.getLocalPort());
+        send(Cmesg);
+        UDP_peerconnection.AddPeerToWaitingList(this);
+    }
+
+    public static void AddPeerToWaitingList(UDP_peerconnection peer){
+        if(peer != null && !UDP_peerconnection.waitingForHandshakeConnections.contains(peer))
+            UDP_peerconnection.waitingForHandshakeConnections.add(peer);
+    }
+
+    public static void RemovePeerToWaitingList(UDP_peerconnection peer){
+        if(peer != null && UDP_peerconnection.waitingForHandshakeConnections.contains(peer))
+            UDP_peerconnection.waitingForHandshakeConnections.remove(peer);
     }
 
     @Override
-    public void send(String message) {
+    public void send(String JSON_msg) {
         try {
-            int udpport =this.dsocket.getPort();
-            InetAddress IAddress=this.dsocket.getLocalAddress();
-            byte[] by = message.getBytes("utf-8");
-            dsocket.send(new DatagramPacket(by, by.length, IAddress, udpport));
-            log.info("Peer sent message: " + message);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            byte[] mes = JSON_msg.getBytes("utf-8");
+            dp_send = new DatagramPacket(mes, mes.length, address, port);
+            ds.send(dp_send);
+            log.warning("Sending handshake response");
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void CloseConnection() {
+        UDP_peerconnection.RemovePeerToWaitingList(this);
     }
 }

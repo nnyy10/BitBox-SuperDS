@@ -51,7 +51,7 @@ public class TCP_Client extends TCP_peerconnection implements Runnable {
 						port = (int) obj.get("port");
 						outGoingSocket = new Socket(host, port);
 						for (int j = 0; j< connect.size(); j++) {
-							if(!host.equals(connect.get(j).socket.getRemoteSocketAddress().toString())){
+							if(!host.equals(((TCP_peerconnection)connect.get(j)).socket.getRemoteSocketAddress().toString())){
 								log.info("Trying to connect peer client to: " + host + ":" + port);
 								try {
 									outGoingConnection = new TCP_Client(outGoingSocket);
@@ -91,10 +91,5 @@ public class TCP_Client extends TCP_peerconnection implements Runnable {
 		this.fileSystemObserver.add(this);
 		
 		log.info("client successfully connected to " + socket.getRemoteSocketAddress().toString());
-	}
-
-	public void switch_jsonCommand(){}
-	protected void finalize() throws Throwable {
-		this.CloseConnection();
 	}
 }

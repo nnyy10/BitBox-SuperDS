@@ -39,7 +39,7 @@ public class  ServerMain implements FileSystemObserver {
 
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
-		for (PeerConnection connection : connections) 
+		for (PeerConnection connection : connections)
 			connection.send(FileSystemEventToJSON(fileSystemEvent));
 	}
 

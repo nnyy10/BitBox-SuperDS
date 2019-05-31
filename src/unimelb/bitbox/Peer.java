@@ -2,6 +2,7 @@ package unimelb.bitbox;
 
 import java.io.IOException;
 
+import java.net.DatagramSocket;
 import java.net.Socket;
 
 import java.security.NoSuchAlgorithmException;
@@ -23,15 +24,13 @@ public class Peer
         Configuration.getConfiguration();
 
         String mode=Configuration.getConfigurationValue("mode");
-        String port_string = Configuration.getConfigurationValue("port").replaceAll("\\s+","");
+
         String all_peers = Configuration.getConfigurationValue("peers").replaceAll("\\s+","");
-        String[] array_of_peers = all_peers.split(","); 
-
-        int port = Integer.parseInt(port_string);
-
-
+        String[] array_of_peers = all_peers.split(",");
 
         if(mode.equals("tcp")) {
+			String port_string = Configuration.getConfigurationValue("port").replaceAll("\\s+","");
+			int port = Integer.parseInt(port_string);
 			EntryPointServer tcp_server = new EntryPointServer(port);
 			new Thread(tcp_server).start();
 
@@ -48,7 +47,7 @@ public class Peer
 				log.info("Trying to connect peer client to: " +peer_pair[0] + ":" + peer_pair[1]);
 				if(connect.size()!= 0){
 					for(int i = 0; i< connect.size(); i++){
-						if(!peer_pair[0].equals(connect.get(i).socket.getRemoteSocketAddress().toString())){
+						if(!peer_pair[0].equals(((TCP_peerconnection)connect.get(i)).socket.getRemoteSocketAddress().toString())){
 							try{
 								outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
 								outGoingConnection = new TCP_Client(outGoingSocket);
@@ -89,13 +88,23 @@ public class Peer
 //-------------------UDP--------------------------------------------------------------------------------------------
 
 		else {
-			UDP_entry udp_server = new UDP_entry(port);
+			String port_string = Configuration.getConfigurationValue("udpPort").replaceAll("\\s+","");
+			int port = Integer.parseInt(port_string);
+
+			DatagramSocket ds = new DatagramSocket(port);
+
+			UDP_entry udp_server = new UDP_entry(ds);
 			new Thread(udp_server).start();
 
 			String[] peer_pair;
 
+			for (String peer_string : array_of_peers) {
+				peer_pair = peer_string.split(":");
+				log.info("Trying to connect peer client to: " + peer_pair[0] + ":" + peer_pair[1]);
+				UDP_peerconnection udpPeer = new UDP_peerconnection(ds, peer_pair[0], Integer.parseInt(peer_pair[1]));
+				udpPeer.sendHS();
+				log.info("UDP handshake sent to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
+			}
 		}
-
-
     }
 }
