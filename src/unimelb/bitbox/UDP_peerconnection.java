@@ -78,4 +78,9 @@ public class UDP_peerconnection extends PeerConnection{
     protected void CloseConnection() {
         UDP_peerconnection.RemovePeerToWaitingList(this);
     }
+
+    @Override
+    protected boolean SendCloseMessage() {
+        return false;
+    }
 }

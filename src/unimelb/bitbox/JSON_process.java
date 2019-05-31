@@ -13,7 +13,6 @@ public class JSON_process {
         WRITE_NOT_COMPLETE,FILENAME_EXIST, UNKNOWN_PROBLEM
     }
 
-
     public static String INVALID_PROTOCOL(String invalidProtocolMessage){
         JSONObject obj = new JSONObject();
         obj.put("command", "INVALID_PROTOCOL");
