@@ -19,9 +19,10 @@ public class TCP_Client extends TCP_peerconnection implements Runnable {
 	
 	public TCP_Client(Socket socket) {
 		super(socket);
-		
-		try {
+	}
 
+	public boolean SendHandshake(){
+		try {
 			String Cmesg = JSON_process.HANDSHAKE_REQUEST(this.socket.getLocalAddress().toString(), this.socket.getLocalPort());
 			outputStream.write(Cmesg+"\n");
 			outputStream.flush();
@@ -40,7 +41,9 @@ public class TCP_Client extends TCP_peerconnection implements Runnable {
 
 				switch(jsonCommand){
 				case "HANDSHAKE_RESPONSE":
-					break;
+					this.fileSystemObserver.add(this);
+					log.info("client successfully connected to " + socket.getRemoteSocketAddress().toString());
+					return true;
 				case "CONNECTION_REFUSED":
 					JSONObject obj;
 					peers = (JSONArray) jsonMsg.get("peers");
@@ -70,7 +73,7 @@ public class TCP_Client extends TCP_peerconnection implements Runnable {
 				default:
             		log.info("Handshake response invalid, closing socket.");
             		this.CloseConnection();
-            		return;
+            		return false;
 				}
 			}
 			catch (Exception e){
@@ -80,16 +83,12 @@ public class TCP_Client extends TCP_peerconnection implements Runnable {
         		outputStream.write(invalidProtocolMsg+"\n");
         		outputStream.flush();
             	this.CloseConnection();
-            	return;
+            	return false;
             }
 		} catch (IOException e) {
 			log.info("Connection FAILED.");
 			this.CloseConnection();
-			return;
+			return false;
 		}
-		
-		this.fileSystemObserver.add(this);
-		
-		log.info("client successfully connected to " + socket.getRemoteSocketAddress().toString());
 	}
 }

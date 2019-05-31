@@ -87,8 +87,6 @@ public class Peer
 //-------------------UDP--------------------------------------------------------------------------------------------
 
 		else {
-			InetAddress d = InetAddress.getByName("1.1.1.1");
-			System.out.println("hehe"+d.toString().replace("/",""));
 			String port_string = Configuration.getConfigurationValue("udpPort").replaceAll("\\s+","");
 			int port = Integer.parseInt(port_string);
 
