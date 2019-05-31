@@ -15,6 +15,13 @@ public class JSON_process {
         WRITE_NOT_COMPLETE,FILENAME_EXIST, UNKNOWN_PROBLEM
     }
 
+    public static String CLOSE_CONNECTION(){
+        JSONObject obj = new JSONObject(String);
+        obj.put("command", "INVALID_PROTOCOL");
+        obj.put("message", invalidProtocolMessage);
+        return obj.toString();
+    }
+
     public static String INVALID_PROTOCOL(String invalidProtocolMessage){
         JSONObject obj = new JSONObject();
         obj.put("command", "INVALID_PROTOCOL");
@@ -45,8 +52,6 @@ public class JSON_process {
     public static String HANDSHAKE_RESPONSE(String host, int port){
         JSONObject obj = new JSONObject();
         obj.put("command", "HANDSHAKE_RESPONSE");
-        obj.put("host", host);
-        obj.put("port", port);
         JSONObject obj2 = hostPort(host, port);
         obj.put("hostPort", obj2);
         return obj.toString();

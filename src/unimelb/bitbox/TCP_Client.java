@@ -58,9 +58,11 @@ public class TCP_Client extends TCP_peerconnection implements Runnable {
 								log.info("Trying to connect peer client to: " + host + ":" + port);
 								try {
 									outGoingConnection = new TCP_Client(outGoingSocket);
-									connectionThread = new Thread(outGoingConnection);
-									connectionThread.start();
-									log.info("Reconnected to: " + "host: " + host + "port: " + port);
+									if(outGoingConnection.SendHandshake()) {
+										connectionThread = new Thread(outGoingConnection);
+										connectionThread.start();
+										log.info("Reconnected to: " + "host: " + host + "port: " + port);
+									}
 									break;
 								} catch (Exception e) {
 									log.info("Can't connect to: " + host + ":" + port);

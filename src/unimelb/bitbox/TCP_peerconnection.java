@@ -14,7 +14,7 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
     protected Socket socket;
     protected BufferedReader inputStream = null;
     protected BufferedWriter outputStream = null;
-    protected boolean ErrorEncountered = false;
+    protected boolean ConnectionClosed = false;
     protected ScheduledExecutorService exec = null;
 
     public void synchronous() {
@@ -33,7 +33,7 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
     @Override
     protected void CloseConnection() {
         exec.shutdown();
-        ErrorEncountered = true;
+        ConnectionClosed = true;
         log.warning("Closing Connection");
         this.fileSystemObserver.remove(this);
         try {
@@ -45,6 +45,15 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
         try {
             this.socket.close();
         } catch (Exception e) {}
+    }
+
+    @Override
+    protected boolean SendCloseMessage() {
+        if(ConnectionClosed)
+            return false;
+        else{
+            this.send(JSON_process.);
+        }
     }
 
     public TCP_peerconnection(Socket socket) {
@@ -77,7 +86,7 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
                     this.CloseConnection();
                     break;
                 }
-                if (this.ErrorEncountered)
+                if (this.ConnectionClosed)
                     break;
             } catch (Exception e) {
                 this.CloseConnection();

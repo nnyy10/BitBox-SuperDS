@@ -29,17 +29,28 @@ public class Encryption {
 
 	private static Logger log = Logger.getLogger(Encryption.class.getName());
 
-	static String encryptSharedKey(String identity) {
+	static String getSharedKey(String identity){
 		try {
-			PublicKey publicKey= getPublicKey(identity);
-			String LocalKey = Configuration.getConfigurationValue("identity");
 			//generating AES Key
-			KeyGenerator kg = KeyGenerator.getInstance("AES");
+			KeyGenerator kg = null;
+			kg = KeyGenerator.getInstance("AES");
 			kg.init(128);
 			SecretKey secretKey = kg.generateKey();
-
 			byte[] bK = secretKey.getEncoded();
-			log.info("sent: " + Arrays.toString(bK));
+			return Arrays.toString(bK);
+		} catch (NoSuchAlgorithmException e) {
+			return null;
+		}
+	}
+
+	static String encryptSharedKey(String identity, String sharedKeyByteString) {
+		try {
+			PublicKey publicKey= getPublicKey(identity);
+
+			String[] byteValues = sharedKeyByteString.substring(1, sharedKeyByteString.length() - 1).split(",");
+			byte[] bK = new byte[byteValues.length];
+
+			log.info("sent: " + sharedKeyByteString);
 
 			Cipher cipher = Cipher.getInstance("RSA");
 			//encrypt mode
@@ -54,7 +65,6 @@ public class Encryption {
 		}
 	}
 
-	
 	static String decryptSharedKey(String encryptedSharedKey,String path) {
 		try {
 			/**

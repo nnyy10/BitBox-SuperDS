@@ -3,34 +3,10 @@ package unimelb.bitbox;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-
 import unimelb.bitbox.util.Configuration;
-import unimelb.bitbox.util.FileSystemManager;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.*;
-import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Timer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-
-import unimelb.bitbox.util.FileSystemManager;
-import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;import javax.management.modelmbean.ModelMBean;
 
 
 public abstract class PeerConnection {
@@ -53,6 +29,8 @@ public abstract class PeerConnection {
     public abstract void send(String s);
 
     protected abstract void CloseConnection();
+
+    protected abstract boolean SendCloseMessage();
 
     public void handleMessage(String str) {
         JSONParser parser =  new JSONParser();
