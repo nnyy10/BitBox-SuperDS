@@ -67,6 +67,7 @@ public class UDP_peerconnection extends PeerConnection{
             ds.send(dp_send);
             log.info("UDP peer sent message to host: " + address.toString() + " port: " + remotePort + " msg:" + JSON_msg);
             log.info("sent message length = " + mes.length);
+
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {

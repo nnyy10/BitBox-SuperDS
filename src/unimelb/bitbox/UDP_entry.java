@@ -5,12 +5,15 @@ import java.net.*;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import unimelb.bitbox.util.Configuration;
+import unimelb.bitbox.util.FileSystemManager;
 
 public class UDP_entry implements Runnable {
 
@@ -25,6 +28,25 @@ public class UDP_entry implements Runnable {
     protected int hostPort=Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
     private String hostAddr=Configuration.getConfigurationValue("advertisedName");
 
+    protected ScheduledExecutorService exec = null;
+
+    public void synchronouspeers() {
+        int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
+
+
+        exec = Executors.newSingleThreadScheduledExecutor();
+        exec.scheduleAtFixedRate(() -> {
+            for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
+                for(PeerConnection peerconnection:ServerMain.getInstance().getlist())
+                {
+                    String syn;
+                    syn = ServerMain.getInstance().FileSystemEventToJSON(event);
+                    peerconnection.send(syn);
+                }
+            }
+        }, 0, synTime, TimeUnit.SECONDS);
+    }
+
     public UDP_entry(DatagramSocket ds) {
         this.ds = ds;
         fileSystemObserver = ServerMain.getInstance();
@@ -32,6 +54,7 @@ public class UDP_entry implements Runnable {
 
     public void run() {
         log.info("Starting UDP server");
+        synchronouspeers();
 
         synchronized (this) {
             this.runningThread = Thread.currentThread();
@@ -88,12 +111,26 @@ public class UDP_entry implements Runnable {
                 UDP_peerconnection udpPeer = new UDP_peerconnection(ds, receieveAddr, receivePort);
                 udpPeer.send(responseMsg);
                 this.fileSystemObserver.add(udpPeer);
+                new Thread(()-> {
+                    for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
+                        String syn;
+                        syn = ServerMain.getInstance().FileSystemEventToJSON(event);
+                        udpPeer.send(syn);
+                    }
+                }).run();
                 break;
             case "HANDSHAKE_RESPONSE":
                 for(UDP_peerconnection peer: UDP_peerconnection.waitingForHandshakeConnections){
                     if(peer.getPort() == receivePort && peer.getInetAddr().equals(receieveAddr)){
                         this.fileSystemObserver.add(peer);
                         UDP_peerconnection.RemovePeerToWaitingList(peer);
+                        new Thread(()-> {
+                            for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
+                                String syn;
+                                syn = ServerMain.getInstance().FileSystemEventToJSON(event);
+                                peer.send(syn);
+                            }
+                        }).run();
                         break;
                     }
                 }
