@@ -1,6 +1,7 @@
 package unimelb.bitbox;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import sun.management.snmp.jvminstr.JvmOSImpl;
 import unimelb.bitbox.Encryption;
 
 @SuppressWarnings("unchecked")
@@ -275,10 +276,10 @@ public class JSON_process {
         return obj.toString();
     }
 
-    public static String AUTH_REQUEST(String publicKey){
+    public static String AUTH_REQUEST(String identity){
         JSONObject obj = new JSONObject();
         obj.put("command", "AUTH_REQUEST");
-        obj.put("identity", publicKey);
+        obj.put("identity", identity);
         return obj.toString();
     }
 
@@ -303,15 +304,55 @@ public class JSON_process {
         return obj.toString();
     }
 
-    public static JSONObject Payload(String str){
+    public static String Payload(String str){
         JSONObject obj = new JSONObject();
         obj.put("payload", str);
-        return obj;
+        return obj.toString();
     }
 
-    public static JSONObject DISCONNECT(){
+    public static String DISCONNECT_PEER_REQUEST(String host,int port){
         JSONObject obj = new JSONObject();
-        obj.put("command", "DISCONNECTION");
-        return obj;
+        obj.put("command", "DISCONNECT_PEER_REQUEST");
+        obj.put("host", host);
+        obj.put("port",port);
+        return obj.toString();
+    }
+
+    public static String DISCONNECT_PEER_RESPONSE(String host, int port, boolean status){
+        JSONObject obj = new JSONObject();
+        obj.put("command","DISCONNECT_PEER_RESPONSE");
+        obj.put("host", host);
+        obj.put("port",port);
+        if(status){
+            obj.put("status", status);
+            obj.put("message", "Disconnected from peer");
+        }
+        else{
+            obj.put("message", "disconnected failed");
+        }
+        return obj.toString();
+    }
+
+    public static String CONNECT_PEER_REQUEST(String host,int port){
+        JSONObject obj = new JSONObject();
+        obj.put("command","CONNECT_PEER_REQUEST");
+        obj.put("host", host);
+        obj.put("port",port);
+        return obj.toString();
+    }
+
+    public static String CONNECT_PEER_RESPONSE(String host, int port, boolean status){
+        JSONObject obj = new JSONObject();
+        obj.put("command","CONNECT_PEER_RESPONSE");
+        obj.put("host", host);
+        obj.put("port",port);
+        if(status){
+            obj.put("status", status);
+            obj.put("message", "connected to peer");
+        }
+        else{
+            obj.put("message", "connected failed");
+        }
+        return obj.toString();
     }
 }
