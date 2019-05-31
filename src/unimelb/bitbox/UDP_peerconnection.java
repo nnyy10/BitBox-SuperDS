@@ -1,6 +1,7 @@
 package unimelb.bitbox;
 
 import unimelb.bitbox.util.Configuration;
+import unimelb.bitbox.util.FileSystemManager;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -8,6 +9,11 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class UDP_peerconnection extends PeerConnection{
@@ -17,6 +23,8 @@ public class UDP_peerconnection extends PeerConnection{
     private InetAddress address;
     private DatagramPacket dp_send = null;
     private DatagramSocket ds;
+    private int TimeoutInverval = Integer.parseInt(Configuration.getConfigurationValue("UDPtimeoutMS"));
+    private int Retry = Integer.parseInt(Configuration.getConfigurationValue("UDPretry"));
 
     protected static ArrayList<UDP_peerconnection> waitingForHandshakeConnections = new ArrayList<>();
 
@@ -64,11 +72,28 @@ public class UDP_peerconnection extends PeerConnection{
         try {
             byte[] mes = JSON_msg.getBytes("utf-8");
             dp_send = new DatagramPacket(mes, mes.length, address, remotePort);
-            ds.send(dp_send);
+
+            Timer timer = new Timer();
+            int begin = 0;
+            int timeInterval = this.TimeoutInverval;
+            timer.schedule(new TimerTask() {
+                int counter = 0;
+                int retry = Integer.parseInt(Configuration.getConfigurationValue("UDPretry"));
+                @Override
+                public void run() {
+                    try {
+                        ds.send(dp_send);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    counter++;
+                    if (counter >= retry){
+                        timer.cancel();
+                    }
+                }
+            }, begin, timeInterval);
             log.info("UDP peer sent message to host: " + address.toString() + " port: " + remotePort + " msg:" + JSON_msg);
             log.info("sent message length = " + mes.length);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
