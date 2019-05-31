@@ -1,8 +1,8 @@
 package unimelb.bitbox;
 
-//A Java program for a Server 
+
+//A Java program for a TCP_Server
 import java.net.*;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -11,20 +11,17 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
-import unimelb.bitbox.ServerMain;
-import unimelb.bitbox.PeerConnection;
-import unimelb.bitbox.JSON_process;
-import unimelb.bitbox.util.HostPort;
 
 
-public class PeerClient extends PeerConnection implements Runnable {
+public class TCP_Client extends TCP_peerconnection implements Runnable {
 	
-	private static Logger log = Logger.getLogger(PeerClient.class.getName());
+	private static Logger log = Logger.getLogger(TCP_Client.class.getName());
 	
-	public PeerClient(Socket socket) {
+	public TCP_Client(Socket socket) {
 		super(socket);
 		
 		try {
+
 			String Cmesg = JSON_process.HANDSHAKE_REQUEST(this.socket.getLocalAddress().toString(), this.socket.getLocalPort());
 			outputStream.write(Cmesg+"\n");
 			outputStream.flush();
@@ -38,8 +35,9 @@ public class PeerClient extends PeerConnection implements Runnable {
 				int port;
 				String host;
 				Socket outGoingSocket = null;
-				PeerClient outGoingConnection = null;
+				TCP_Client outGoingConnection = null;
 				Thread connectionThread = null;
+
 				switch(jsonCommand){
 				case "HANDSHAKE_RESPONSE":
 					break;
@@ -53,10 +51,10 @@ public class PeerClient extends PeerConnection implements Runnable {
 						port = (int) obj.get("port");
 						outGoingSocket = new Socket(host, port);
 						for (int j = 0; j< connect.size(); j++) {
-							if(!host.equals(connect.get(j).socket.getRemoteSocketAddress().toString())){
+							if(!host.equals(((TCP_peerconnection)connect.get(j)).socket.getRemoteSocketAddress().toString())){
 								log.info("Trying to connect peer client to: " + host + ":" + port);
 								try {
-									outGoingConnection = new PeerClient(outGoingSocket);
+									outGoingConnection = new TCP_Client(outGoingSocket);
 									connectionThread = new Thread(outGoingConnection);
 									connectionThread.start();
 									log.info("Reconnected to: " + "host: " + host + "port: " + port);
@@ -93,9 +91,5 @@ public class PeerClient extends PeerConnection implements Runnable {
 		this.fileSystemObserver.add(this);
 		
 		log.info("client successfully connected to " + socket.getRemoteSocketAddress().toString());
-	}
-	
-	protected void finalize() throws Throwable {
-		this.CloseConnection();
 	}
 }

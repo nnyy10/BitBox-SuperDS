@@ -20,6 +20,7 @@ public class  ServerMain implements FileSystemObserver {
 	public FileSystemManager fileSystemManager;
 	private ArrayList<PeerConnection> connections = new ArrayList<>();
 
+//The trim() method is used to remove the head and tail whitespace of a string.
 	private ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager = new FileSystemManager(Configuration.getConfigurationValue("path").trim(), this);
 	}
@@ -38,7 +39,7 @@ public class  ServerMain implements FileSystemObserver {
 
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
-		for (PeerConnection connection : connections) 
+		for (PeerConnection connection : connections)
 			connection.send(FileSystemEventToJSON(fileSystemEvent));
 	}
 
@@ -75,7 +76,9 @@ public class  ServerMain implements FileSystemObserver {
 		if (connections.contains(peerConnection))
 			this.connections.remove(peerConnection);
 	}
-	
+
+
+
 	public  ArrayList<PeerConnection> getlist() {
 		return connections;
 	}

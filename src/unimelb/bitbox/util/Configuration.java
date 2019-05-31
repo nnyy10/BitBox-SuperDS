@@ -48,7 +48,8 @@ public class Configuration {
 
 
     public static String getConfigurationValue(String key) {
-        return properties.getProperty(key);
+        return properties.getProperty(key).trim();
+
     }
 
     // private constructor to prevent initialization

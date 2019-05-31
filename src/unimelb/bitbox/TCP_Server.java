@@ -1,6 +1,6 @@
 package unimelb.bitbox;
 
-//A Java program for a Server 
+//A Java program for a TCP_Server
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
@@ -11,13 +11,14 @@ import unimelb.bitbox.JSON_process;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 
-public class PeerServer extends PeerConnection implements Runnable {
+
+public class TCP_Server extends TCP_peerconnection implements Runnable {
 
 	private static Logger log = Logger.getLogger(PeerConnection.class.getName());
 	
 	public static int numberOfConnections = 0;
-	
-	public PeerServer(Socket socket) {
+
+	public TCP_Server(Socket socket) {
 		super(socket);
 		numberOfConnections++;
 		this.fileSystemObserver.add(this);

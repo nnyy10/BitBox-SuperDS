@@ -16,9 +16,8 @@ import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;
+import java.net.*;
 import java.io.File;
-import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
@@ -31,96 +30,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import unimelb.bitbox.util.FileSystemManager;
-import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;import javax.management.modelmbean.ModelMBean;
 
 
-public class PeerConnection implements Runnable {
+public abstract class PeerConnection {
 
-	private static Logger log = Logger.getLogger(PeerConnection.class.getName());
-	
-    protected Socket socket = null;
-    protected BufferedReader inputStream = null;
-    protected BufferedWriter outputStream = null;
+    protected static Logger log = Logger.getLogger(PeerConnection.class.getName());
+
     protected ServerMain fileSystemObserver = null;
-    protected boolean ErrorEncountered = false;
-    protected ScheduledExecutorService exec = null;
-    
-    public PeerConnection(Socket socket) {
 
-        this.socket = socket;
-        this.fileSystemObserver = ServerMain.getInstance();
-        try {
-            inputStream = new BufferedReader(new InputStreamReader(this.socket.getInputStream(), "UTF-8"));
-            outputStream = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream(), "UTF-8"));
-        } catch (IOException e) {
-            this.CloseConnection();
-        }
-    }
+    public abstract void send(String s);
 
-    protected void CloseConnection() {
-    	exec.shutdown();
-    	ErrorEncountered = true;
-        log.warning("Closing Connection");
-        this.fileSystemObserver.remove(this);
-        try {
-            this.inputStream.close();
-        } catch (Exception e) {}
-        try {
-            this.outputStream.close();
-        } catch (Exception e) {}
-        try {
-            this.socket.close();
-        } catch (Exception e) {}
-    }
-
-    public void run() {
-        String line = "";
-
-        int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
-
-        exec = Executors.newSingleThreadScheduledExecutor();
-        exec.scheduleAtFixedRate(() -> {
-            for (FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
-                String syn;
-                syn = ServerMain.getInstance().FileSystemEventToJSON(event);
-                send(syn);
-            }
-        }, 0, synTime, TimeUnit.SECONDS);
-
-        while (true) {
-            try {
-                line = inputStream.readLine();
-                log.info("Peer recieved message: " + line);
-                if (line != null) {
-                    handleMessage(line);
-                } else {
-                    log.info("The recieved message is null, closing connection.");
-                    this.CloseConnection();
-                    break;
-                }
-                if(this.ErrorEncountered)
-                	break;
-            } catch (Exception e) {
-                this.CloseConnection();
-                break;
-            }
-        }
-        this.CloseConnection();
-    }
-
-    public void send(String message) {
-        try {
-            outputStream.write(message + "\n");
-            outputStream.flush();
-            log.info("Peer sent message: " + message);
-        } catch (Exception e) {
-            log.warning("Peer encountered ERROR when sending message: " + message);
-            this.CloseConnection();
-        }
-    }
+    protected abstract void CloseConnection();
 
     public void handleMessage(String str) {
-        JSONParser parser = new JSONParser();
+        JSONParser parser =  new JSONParser();
 
         try {
             String md5 = "", pathName = "", content = "";
@@ -132,7 +56,7 @@ public class PeerConnection implements Runnable {
             JSONObject fileDescriptor;
             String command = (String) obj.get("command");
             log.info("Peer recieved command: " + command);
-            
+
             switch (command) {
                 case "FILE_CREATE_REQUEST":
                     fileDescriptor = (JSONObject) obj.get("fileDescriptor");
