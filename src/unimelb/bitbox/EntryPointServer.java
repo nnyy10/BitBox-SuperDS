@@ -93,8 +93,8 @@ public class EntryPointServer implements Runnable{
             		int [] tempPrlist = new int [connections.size()];
             		
             		for(int i= 0; i<ServerMain.getInstance().getlist().size(); i++){
-            			tempIPlist[i]=(connections.get(i).socket.getRemoteSocketAddress().toString());
-            			tempPrlist[i]=(connections.get(i).socket.getPort());
+            			tempIPlist[i]=(((TCP_peerconnection)connections.get(i)).socket.getRemoteSocketAddress().toString());
+            			tempPrlist[i]=(((TCP_peerconnection)connections.get(i)).socket.getPort());
             		}
             		JSON_process.CONNECTION_REFUSED(tempIPlist, tempPrlist);
             		
