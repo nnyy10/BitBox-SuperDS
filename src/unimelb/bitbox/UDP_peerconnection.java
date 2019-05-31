@@ -59,7 +59,7 @@ public class UDP_peerconnection extends PeerConnection{
             byte[] mes = JSON_msg.getBytes("utf-8");
             dp_send = new DatagramPacket(mes, mes.length, address, port);
             ds.send(dp_send);
-            log.info("UDP peer sent message to host: " + address.toString() + " port: " + port + " msg:" + mes);
+            log.info("UDP peer sent message to host: " + address.toString() + " port: " + port + " msg:" + JSON_msg);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {

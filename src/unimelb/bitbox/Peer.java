@@ -103,7 +103,6 @@ public class Peer
 				log.info("Trying to connect peer client to: " + peer_pair[0] + ":" + peer_pair[1]);
 				UDP_peerconnection udpPeer = new UDP_peerconnection(ds, InetAddress.getByName(peer_pair[0]), Integer.parseInt(peer_pair[1]));
 				udpPeer.sendHS();
-				log.info("UDP handshake sent to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
 			}
 		}
     }
