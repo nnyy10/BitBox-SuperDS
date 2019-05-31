@@ -54,6 +54,15 @@ public class UDP_peerconnection extends PeerConnection{
     }
 
     @Override
+    public boolean equals(Object peer) {
+        UDP_peerconnection p = (UDP_peerconnection) peer;
+        if(p.getAddr().equals(this.getAddr()) && p.getPort() == this.getPort())
+            return true;
+        else
+            return false;
+    }
+
+    @Override
     public void send(String JSON_msg) {
         try {
             byte[] mes = JSON_msg.getBytes("utf-8");
