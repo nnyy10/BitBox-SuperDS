@@ -144,6 +144,9 @@ public class ClientServer implements Runnable{
                                     }
                                     else{
                                         //connect in udp mode and default!
+                                        //if(){}else{}
+                                        send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
+
                                     }
                                 }
 
@@ -162,6 +165,8 @@ public class ClientServer implements Runnable{
                                     }
                                     if(alreadyConnected){
                                         //disconnect
+                                        //if(){}else{}
+                                        send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host,port, true),sharedKey),outputStream);
                                     }else {
                                         log.warning("not connected yet");
                                     }
