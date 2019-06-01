@@ -8,7 +8,6 @@ import java.net.Socket;
 
 import java.security.NoSuchAlgorithmException;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import unimelb.bitbox.util.Configuration;
@@ -37,7 +36,7 @@ public class Peer
         if(mode.equals("tcp")) {
 			String port_string = Configuration.getConfigurationValue("port").replaceAll("\\s+","");
 			int port = Integer.parseInt(port_string);
-			EntryPointServer tcp_server = new EntryPointServer(port);
+			TCP_entry tcp_server = new TCP_entry(port);
 			new Thread(tcp_server).start();
 
 			String[] peer_pair;
@@ -45,7 +44,6 @@ public class Peer
 			TCP_Client outGoingConnection = null;
 			Thread connectionThread = null;
 			int triedPeerCnt = 0;
-			ArrayList<PeerConnection> connect = ServerMain.getInstance().getlist();
 			//String host; int port;
 			if(!(array_of_peers.length == 1 && array_of_peers[0].equals(""))) {
 				for (String peer_string : array_of_peers) {

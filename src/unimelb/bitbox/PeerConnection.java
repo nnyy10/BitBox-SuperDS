@@ -30,8 +30,6 @@ public abstract class PeerConnection {
 
     protected abstract void CloseConnection();
 
-    protected abstract boolean SendCloseMessage();
-
     public void handleMessage(String str) {
         JSONParser parser =  new JSONParser();
 

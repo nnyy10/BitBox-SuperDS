@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.io.File;
@@ -18,7 +19,7 @@ import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 public class  ServerMain implements FileSystemObserver {
 	private static Logger log = Logger.getLogger(ServerMain.class.getName());
 	public FileSystemManager fileSystemManager;
-	private ArrayList<PeerConnection> connections = new ArrayList<>();
+	private CopyOnWriteArrayList<PeerConnection> connections = new CopyOnWriteArrayList<>();
 
 	private ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager = new FileSystemManager(Configuration.getConfigurationValue("path").trim(), this);
@@ -77,7 +78,7 @@ public class  ServerMain implements FileSystemObserver {
 		}
 	}
 
-	public  ArrayList<PeerConnection> getlist() {
+	public  CopyOnWriteArrayList<PeerConnection> getlist() {
 		return connections;
 	}
 }
