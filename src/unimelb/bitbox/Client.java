@@ -77,14 +77,14 @@ public class Client {
             String command = argsBean.getCommand();
             String identity = argsBean.getIdentity();
             //String encryptedSharedKey = Encryption.encryptSharedKey(identity);
-            System.out.println("try to connect!");
+            log.info("try to connect \nhost:" + serverHost + " port: " + serverPort);
             Socket socket = new Socket(serverHost, serverPort);
-            System.out.println("connecting!");
+            log.info("connected!");
             BufferedReader inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             BufferedWriter outputStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
 
             switch (command){
-                case "list_peers":
+                case "list_peer":
                     if (!send(JSON_process.AUTH_REQUEST(identity), outputStream)) {
                         log.warning("authority send failed");
                          CloseConnection(socket,outputStream,inputStream);

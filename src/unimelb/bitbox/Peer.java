@@ -28,6 +28,10 @@ public class Peer
         String all_peers = Configuration.getConfigurationValue("peers").replaceAll("\\s+","");
         String[] array_of_peers = all_peers.split(",");
 
+        int clinetServerPort = Integer.parseInt(Configuration.getConfigurationValue("BBClientTCPport"));
+
+        ClientServer clientServer = new ClientServer(clinetServerPort);
+
         if(mode.equals("tcp")) {
 			String port_string = Configuration.getConfigurationValue("port").replaceAll("\\s+","");
 			int port = Integer.parseInt(port_string);
@@ -93,7 +97,7 @@ public class Peer
 			int port = Integer.parseInt(port_string);
 
 			DatagramSocket ds = new DatagramSocket(port);
-
+			clientServer.datagramSocket = ds;
 			UDP_entry udp_server = new UDP_entry(ds);
 			new Thread(udp_server).start();
 
@@ -106,5 +110,6 @@ public class Peer
 				udpPeer.sendHS();
 			}
 		}
+		new Thread(clientServer).start();
     }
 }

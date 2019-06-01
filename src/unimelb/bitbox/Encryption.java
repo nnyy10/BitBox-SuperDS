@@ -1,4 +1,5 @@
 package unimelb.bitbox;
+
 import com.google.common.io.ByteStreams;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -15,7 +16,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.spec.*;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Scanner;
 import java.util.logging.Logger;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -58,8 +58,6 @@ public class Encryption {
 			//encrypt mode
 			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 			String encryptedSharedKey = java.util.Base64.getEncoder().encodeToString(cipher.doFinal(bK));
-			for(byte b: bK)
-				System.out.println("sent"+b);
 			return encryptedSharedKey;
 		}
 		catch (Exception e) {
@@ -220,13 +218,9 @@ public class Encryption {
 //    public static void main(String[] args) throws Exception {
 //		String Msg = "this is a test message";
 //		String sharedKey = getSharedKey();
-//		System.out.println(sharedKey);
-//		//System.out.println("the key is: " + str + " finished");
+//		log.info("sent: " + sharedKey);
 //		String s = encryptSharedKey("zhouguozhi@xuandeMacBook-Air.local",sharedKey);
-//		System.out.println(s);
 //		//System.out.println(s);
-//		//Key pk = getPrivateKey("/");
-//
 //		String str = decryptSharedKey(s,"id_rsa");
 //		log.info("received shared Key: " + str);
 //		String TestMsg = encryptMessage(Msg, str);
