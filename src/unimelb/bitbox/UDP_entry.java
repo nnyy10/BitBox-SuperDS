@@ -117,19 +117,20 @@ public class UDP_entry implements Runnable {
                 }
                 break;
             case "HANDSHAKE_RESPONSE":
-                UDP_peerconnection p = null;
+                UDP_peerconnection.ThreadResponsePair threadResponsePair = null;
                 for (UDP_peerconnection peer : UDP_peerconnection.waitingForHandshakeConnections) {
                     if (peer.getPort() == receivePort && peer.getInetAddr().equals(receieveAddr)) {
+
                         for (UDP_peerconnection.ThreadResponsePair trp : UDP_peerconnection.waitingForResponseThreads) {
                             System.out.println(trp.addr + ":" + receieveAddr);
                             System.out.println(trp.port + ":" + receivePort);
                             System.out.println(JSON_process.RESPONSE_EQUALS(trp.JSON_Response, message));
                             if (trp.addr.equals(receieveAddr) && trp.port == receivePort && JSON_process.RESPONSE_EQUALS(trp.JSON_Response, message)) {
                                 trp.timer.cancel(); // If there is an active timer thread waiting for this response, stop this timer thread
+                                threadResponsePair = trp;
                                 break;
                             }
                         }
-                        p = peer;
                         this.fileSystemObserver.add(peer);
                         UDP_peerconnection.RemovePeerToWaitingList(peer);
                         new Thread(() -> {
@@ -142,8 +143,8 @@ public class UDP_entry implements Runnable {
                         break;
                     }
                 }
-                if (p != null){
-                    UDP_peerconnection.waitingForResponseThreads.remove(p);
+                if (threadResponsePair != null){
+                    UDP_peerconnection.waitingForResponseThreads.remove(threadResponsePair);
                 }
                 break;
             default:

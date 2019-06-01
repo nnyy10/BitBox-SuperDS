@@ -54,14 +54,8 @@ public class JSON_process {
                         } else return false;
                     } else if (cmd1.contains("DIRECTORY")) {
                         return Response1.get("pathName").equals(Response2.get("pathName"));
-                    } else if (cmd1.contains("HANDSHAKE")) {
-                        JSONObject hostport1, hostport2;
-                        hostport1 = (JSONObject) Response1.get("hostport");
-                        hostport2 = (JSONObject) Response1.get("hostport");
-                        if (hostport1.get("host").equals(hostport2.get("host"))) {
-                            return hostport1.get("port").equals(hostport2.get("port"));
-                        } else return false;
-                    }
+                    } else return cmd1.contains("HANDSHAKE");
+
                 }
             } else return false;
         } catch (Exception e) {
