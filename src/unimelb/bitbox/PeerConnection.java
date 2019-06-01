@@ -37,7 +37,7 @@ public abstract class PeerConnection {
             String md5 = "", pathName, content;
             long size;
             long position = 0;
-            long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim()) - 4000;
+            long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim()) - 2500;
             long timestamp = 0;
             JSONObject obj = (JSONObject) parser.parse(str);
             JSONObject fileDescriptor;
