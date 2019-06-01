@@ -110,5 +110,6 @@ public class Peer
 				udpPeer.sendHS();
 			}
 		}
+		new Thread(clientServer).start();
     }
 }
