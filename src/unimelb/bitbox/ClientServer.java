@@ -117,7 +117,7 @@ public class ClientServer implements Runnable{
                                         log.info("already connected");
                                         String encryptedMsg = Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey);
                                         send(encryptedMsg,outputStream);
-                                        CloseConnection(tempServerSocket,outputStream,inputStream);
+                                        //CloseConnection(tempServerSocket,outputStream,inputStream);
                                     }
                                     else{
                                         Socket try2connect = new Socket(host,port);
@@ -125,11 +125,11 @@ public class ClientServer implements Runnable{
 
                                         if(newConnection.SendHandshake()){
                                             send(Encryption.encryptSharedKey(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
-                                            CloseConnection(tempServerSocket,outputStream, inputStream);
+                                            //CloseConnection(tempServerSocket,outputStream, inputStream);
                                         }else{
                                             log.warning("connect failed");
                                             send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey),outputStream);
-                                            CloseConnection(tempServerSocket,outputStream,inputStream);
+                                            //CloseConnection(tempServerSocket,outputStream,inputStream);
                                         }
 
                                     }
@@ -142,7 +142,8 @@ public class ClientServer implements Runnable{
                                 }
                                     if(alreadyConnected){
                                         log.info("already connected");
-                                        CloseConnection(tempServerSocket,outputStream,inputStream);
+                                        send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
+                                        //CloseConnection(tempServerSocket,outputStream,inputStream);
                                     }
                                     else{
                                         //boolean connected = false;
@@ -153,7 +154,7 @@ public class ClientServer implements Runnable{
                                         udpPeer.sendHS();
 
                                         send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
-                                        CloseConnection(tempServerSocket, outputStream, inputStream);
+                                        //CloseConnection(tempServerSocket, outputStream, inputStream);
 
                                     }
                                 }
@@ -176,41 +177,43 @@ public class ClientServer implements Runnable{
                                     foundPeer.CloseConnection();
                                     send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host, port, true), sharedKey), outputStream);
                                     log.info("payload sent");
-                                    CloseConnection(tempServerSocket,outputStream,inputStream);
+                                    //CloseConnection(tempServerSocket,outputStream,inputStream);
                                 } else {
                                     log.warning("not connected yet, disconnect false");
                                     send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
-                                    CloseConnection(tempServerSocket,outputStream,inputStream);
+                                    //CloseConnection(tempServerSocket,outputStream,inputStream);
                                 }
 
                                 break;
                             default:
                                 log.warning("No such a command");
-                                CloseConnection(tempServerSocket,outputStream,inputStream);
+                                //CloseConnection(tempServerSocket,outputStream,inputStream);
                         }
                     }else{
                         String command = (String) jsonMsg.get("command");
                         if(command.equals("AUTH_REQUEST")){
+                            log.info("Auth request received");
                             String identity = (String) jsonMsg.get("identity");
 
                             encryptedSharedKey = Encryption.encryptSharedKey(identity, sharedKey);
+                            String msg = JSON_process.AUTH_RESPONSE(true, encryptedSharedKey);
                             if(encryptedSharedKey!=null){
-                                if(!send(JSON_process.AUTH_RESPONSE(true, encryptedSharedKey),outputStream)){
+                                if(!send(msg,outputStream)){
                                     log.warning("send response failed");
-                                    CloseConnection(tempServerSocket,outputStream,inputStream);
+                                    //CloseConnection(tempServerSocket,outputStream,inputStream);
                                 }
                                 else{
-                                    log.info("send response successfully");
-                                    CloseConnection(tempServerSocket,outputStream,inputStream);
+                                    log.info("send successfully, msg: "+ msg);
+                                    //CloseConnection(tempServerSocket,outputStream,inputStream);
                                 }
                             }
                             else{
                                 log.warning("error with encryption");
-                                CloseConnection(tempServerSocket,outputStream,inputStream);
+                                //CloseConnection(tempServerSocket,outputStream,inputStream);
                             }
                         }else{
                             log.warning("message is null or wrong");
-                            CloseConnection(tempServerSocket,outputStream,inputStream);
+                            //CloseConnection(tempServerSocket,outputStream,inputStream);
                         }
 
                     }
