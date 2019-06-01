@@ -35,9 +35,9 @@ public abstract class PeerConnection {
 
         try {
             String md5 = "", pathName, content;
-            long size = 0;
+            long size;
             long position = 0;
-            long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim()) - 2500;
+            long length = Long.parseLong(Configuration.getConfigurationValue("blockSize").trim()) - 4000;
             long timestamp = 0;
             JSONObject obj = (JSONObject) parser.parse(str);
             JSONObject fileDescriptor;
@@ -218,6 +218,7 @@ public abstract class PeerConnection {
                     md5 = (String) fileDescriptor.get("md5");
                     timestamp = (long) fileDescriptor.get("lastModified");
                     pathName = (String) obj.get("pathName");
+                    size = (long) fileDescriptor.get("fileSize");
                     if (fileSystemObserver.fileSystemManager.isSafePathName(pathName)) {
                         if (fileSystemObserver.fileSystemManager.fileNameExists(pathName)) {
                             if (fileSystemObserver.fileSystemManager.deleteFile(pathName, timestamp, md5))
