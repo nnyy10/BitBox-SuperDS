@@ -1,6 +1,5 @@
 package unimelb.bitbox;
 
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
