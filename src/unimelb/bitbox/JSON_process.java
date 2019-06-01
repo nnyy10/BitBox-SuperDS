@@ -3,7 +3,6 @@ package unimelb.bitbox;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 @SuppressWarnings("unchecked")
 
