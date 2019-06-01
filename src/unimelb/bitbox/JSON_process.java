@@ -53,10 +53,12 @@ public class JSON_process {
                             return false;
                         if (!fD1.get("fileSize").equals(fD2.get("fileSize")))
                             return false;
-                        if (!Response1.get("length").equals(Response2.get("length")))
-                            return false;
-                        if (!Response1.get("position").equals(Response2.get("position")))
-                            return false;
+                        if (cmd1.equals("FILE_BYTE_REQUEST") && cmd2.equals("FILE_BYTE_REQUEST")) {
+                            if (!Response1.get("length").equals(Response2.get("length")))
+                                return false;
+                            if (!Response1.get("position").equals(Response2.get("position")))
+                                return false;
+                        }
                         return true;
                     } else if (cmd1.contains("DIRECTORY")) {
                         return Response1.get("pathName").equals(Response2.get("pathName"));
