@@ -234,7 +234,7 @@ public abstract class PeerConnection {
                     if (fileSystemObserver.fileSystemManager.makeDirectory(pathName))
                         send(JSON_process.DIRECTORY_CREATE_RESPONSE(pathName, JSON_process.problems.NO_ERROR));
                     else
-                        send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.CREATE_DIR_ERROR));
+                        send(JSON_process.DIRECTORY_CREATE_RESPONSE(pathName, JSON_process.problems.CREATE_DIR_ERROR));
                     break;
                 case "DIRECTORY_DELETE_REQUEST":
                     pathName = (String) obj.get("pathName");
