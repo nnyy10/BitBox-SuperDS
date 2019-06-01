@@ -192,7 +192,7 @@ public class Client {
                                 String host = (String) obj1.get("host");
                                 int port = (int) obj1.get("port");
                                 if(host!=null){
-                                    System.out.println(msg+ host+":"+port);
+                                    System.out.println(msg+ " "+ host+":"+port);
                                 }else{
                                     System.out.println(msg);
                                 }
