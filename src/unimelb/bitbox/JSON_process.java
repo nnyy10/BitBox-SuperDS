@@ -40,29 +40,33 @@ public class JSON_process {
             String cmd1 = (String) Response1.get("command");
             String cmd2 = (String) Response2.get("command");
             if (cmd1.contains("RESPONSE") && cmd2.contains("RESPONSE")) {
-                if (cmd1.equals(Response2.get("command"))) {
+                if (cmd1.equals(cmd2)) {
                     if (cmd1.contains("FILE")) {
                         JSONObject fD1, fD2;
                         fD1 = (JSONObject) Response1.get("fileDescriptor");
                         fD2 = (JSONObject) Response2.get("fileDescriptor");
-                        if (Response1.get("pathName").equals(Response2.get("pathName"))) {
-                            if (fD1.get("md5").equals(fD2.get("md5"))) {
-                                if (fD1.get("lastModified").equals(fD2.get("lastModified"))) {
-                                    return fD1.get("fileSize").equals(fD2.get("fileSize"));
-                                } else return false;
-                            } else return false;
-                        } else return false;
+                        if (!Response1.get("pathName").equals(Response2.get("pathName")))
+                            return false;
+                        if (!fD1.get("md5").equals(fD2.get("md5")))
+                            return false;
+                        if (!fD1.get("lastModified").equals(fD2.get("lastModified")))
+                            return false;
+                        if (!fD1.get("fileSize").equals(fD2.get("fileSize")))
+                            return false;
+                        if (!Response1.get("length").equals(Response2.get("length")))
+                            return false;
+                        if (!Response1.get("position").equals(Response2.get("position")))
+                            return false;
+                        return true;
                     } else if (cmd1.contains("DIRECTORY")) {
                         return Response1.get("pathName").equals(Response2.get("pathName"));
                     } else return cmd1.contains("HANDSHAKE");
-
-                }
+                } return false;
             } else return false;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
-
     }
 
     public static String INVALID_PROTOCOL(String invalidProtocolMessage) {
