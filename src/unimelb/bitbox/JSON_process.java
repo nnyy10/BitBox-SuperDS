@@ -397,15 +397,15 @@ public class JSON_process {
         return obj.toString();
     }
 
-    public static void main(String[] args) {
-        try {
-            String testTxt = FILE_BYTES_REQUEST("sss", 4343, 65, "hahaha", 1, 34);
-            String NewTxt = GENERATE_RESPONSE_MSG(testTxt);
-            System.out.println(NewTxt);
-            System.out.println("two different text:" +RESPONSE_EQUALS(NewTxt, testTxt));
-            System.out.println("two same text:" + RESPONSE_EQUALS(NewTxt,NewTxt));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void main(String[] args) {
+//        try {
+//            String testTxt = FILE_BYTES_REQUEST("sss", 4343, 65, "hahaha", 1, 34);
+//            String NewTxt = GENERATE_RESPONSE_MSG(testTxt);
+//            System.out.println(NewTxt);
+//            System.out.println("two different text:" +RESPONSE_EQUALS(NewTxt, testTxt));
+//            System.out.println("two same text:" + RESPONSE_EQUALS(NewTxt,NewTxt));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
