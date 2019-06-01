@@ -4,6 +4,7 @@ package unimelb.bitbox;
 //A Java program for a TCP_Server
 import java.net.*;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
@@ -47,7 +48,7 @@ public class TCP_Client extends TCP_peerconnection implements Runnable {
 				case "CONNECTION_REFUSED":
 					JSONObject obj;
 					peers = (JSONArray) jsonMsg.get("peers");
-					ArrayList<PeerConnection> connect = ServerMain.getInstance().getlist();
+					CopyOnWriteArrayList<PeerConnection> connect = ServerMain.getInstance().getlist();
 					for(int i = 0; i< peers.size();i++){
 						obj = (JSONObject) peers.get(i);
 						host = (String) obj.get("host");

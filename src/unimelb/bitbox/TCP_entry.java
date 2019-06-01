@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-public class EntryPointServer implements Runnable{
+public class TCP_entry implements Runnable{
 
     protected int serverPort;
     protected ServerSocket serverSocket = null;
@@ -29,7 +29,7 @@ public class EntryPointServer implements Runnable{
     
     protected ExecutorService threadPool =Executors.newFixedThreadPool(10);
 
-    public EntryPointServer(int port){
+    public TCP_entry(int port){
         this.serverPort = port;
     }
 

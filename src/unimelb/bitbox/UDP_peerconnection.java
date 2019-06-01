@@ -82,11 +82,7 @@ public class UDP_peerconnection extends PeerConnection{
     }
 
     public static boolean isResponseMessage(String message){
-
-
-        Boolean isResponseMessage;
-        isResponseMessage= !message.contains("_RESPONSE");
-            return isResponseMessage;
+        return message.contains("_RESPONSE");
     }
 
     @Override
@@ -110,20 +106,9 @@ public class UDP_peerconnection extends PeerConnection{
                         }
                         counter++;
                         if (counter >= retry) {
-
-                            //todo cancel connection
-                            UDP_peerconnection udpPeer = new UDP_peerconnection(ds, address, remotePort);
                             if(JSON_msg.equals("HANDSHAKE_REQUEST"))
-                            {
-                                RemovePeerToWaitingList(udpPeer);
-                            }else
-                                {
-
-                                fileSystemObserver.remove(udpPeer);
-                                }
-
-
-
+                                RemovePeerToWaitingList(UDP_peerconnection.this);
+                            fileSystemObserver.remove(UDP_peerconnection.this);
                             timer.cancel();
                         }
                     }
@@ -143,10 +128,5 @@ public class UDP_peerconnection extends PeerConnection{
     protected void CloseConnection() {
         ServerMain.getInstance().remove(this);
         UDP_peerconnection.RemovePeerToWaitingList(this);
-    }
-
-    @Override
-    protected boolean SendCloseMessage() {
-        return false;
     }
 }
