@@ -61,6 +61,7 @@ public abstract class PeerConnection {
                                 }
                                 if (!this.fileSystemObserver.fileSystemManager.checkShortcut(pathName)) {
                                     long readLength;
+
                                     if (size == 0) {
                                         send(JSON_process.FILE_CREATE_RESPONSE(md5, timestamp, size, pathName, JSON_process.problems.NO_ERROR));
                                         fileSystemObserver.fileSystemManager.checkWriteComplete(pathName);

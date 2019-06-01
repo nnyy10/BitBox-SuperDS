@@ -89,9 +89,11 @@ public class UDP_peerconnection extends PeerConnection {
     @Override
     public void send(String JSON_msg) {
         try {
+
             byte[] mes = JSON_msg.getBytes("utf-8");
             dp_send = new DatagramPacket(mes, mes.length, address, remotePort);
-
+            log.info("UDP peer sent message to host: " + address.toString() + " port: " + remotePort + " msg:" + JSON_msg);
+            log.info("sent message length = " + mes.length);
             if (!isResponseMessage(JSON_msg)) {
                 Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
@@ -121,8 +123,7 @@ public class UDP_peerconnection extends PeerConnection {
                         JSON_process.GENERATE_RESPONSE_MSG(JSON_msg)));
             } else
                 ds.send(dp_send); // if the message sent is a response message, don't need to retry
-            log.info("UDP peer sent message to host: " + address.toString() + " port: " + remotePort + " msg:" + JSON_msg);
-            log.info("sent message length = " + mes.length);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
