@@ -98,6 +98,7 @@ public class Client {
                             //String encryptedSharedKey = null;
                             String sharedKey = Encryption.decryptSharedKey(encryptedSharedKey, "id_rsa");
                             String Msg = JSON_process.LIST_PEER_REQUEST();
+                            log.info("message ready to send: " + Msg);
                             String encryptMSG = Encryption.encryptMessage(Msg, sharedKey);
                             if (!send(JSON_process.Payload(encryptMSG), outputStream)){
                                 log.warning("payload send failed");
@@ -109,12 +110,11 @@ public class Client {
                                 JSONObject obj1 = (JSONObject) JSparser.parse(list_peer);
                                 if(obj1.get("command").equals("LIST_PEERS_RESPONSE")){
                                     JSONArray peers =(JSONArray) obj1.get("peers");
-                                    for (Object o : peers) {
-                                        JSONObject peer = (JSONObject) o;
+                                    for (int i = 0; i < peers.size();i++) {
+                                        JSONObject peer = (JSONObject) peers.get(i);
                                         JSONObject host = (JSONObject) peer.get("host");
                                         JSONObject port = (JSONObject) peer.get("port");
-                                        System.out.println("host: "+ host);
-                                        System.out.println("port: "+ port);
+                                        System.out.println("peer: "+ i +". " + host + ":"+ port);
                                     }
 
                                     CloseConnection(socket, outputStream,inputStream);
