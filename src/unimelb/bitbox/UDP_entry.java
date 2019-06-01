@@ -153,9 +153,11 @@ public class UDP_entry implements Runnable {
                         if (UDP_peerconnection.isResponseMessage(message)) {
                             UDP_peerconnection.ThreadResponsePair foundThreadPair = null;
                             for (UDP_peerconnection.ThreadResponsePair trp : UDP_peerconnection.waitingForResponseThreads) {
-//                                System.out.println(trp.addr + ":" + receieveAddr);
-//                                System.out.println(trp.port + ":" + receivePort);
-//                                System.out.println(JSON_process.RESPONSE_EQUALS(trp.JSON_Response, message));
+                                System.out.println(trp.addr + ":" + receieveAddr);
+                                System.out.println(trp.port + ":" + receivePort);
+                                System.out.println(trp.JSON_Response);
+                                System.out.println(message);
+                                System.out.println(JSON_process.RESPONSE_EQUALS(trp.JSON_Response, message));
                                 if (trp.addr.equals(receieveAddr) && trp.port == receivePort && JSON_process.RESPONSE_EQUALS(trp.JSON_Response, message)) {
                                     trp.timer.cancel(); // If there is an active timer thread waiting for this response, stop this timer thread
                                     foundThreadPair = trp;
