@@ -32,19 +32,21 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
 
     @Override
     protected void CloseConnection() {
-        exec.shutdown();
-        ConnectionClosed = true;
-        log.warning("Closing Connection");
-        this.fileSystemObserver.remove(this);
-        try {
-            this.inputStream.close();
-        } catch (Exception e) {}
-        try {
-            this.outputStream.close();
-        } catch (Exception e) {}
-        try {
-            this.socket.close();
-        } catch (Exception e) {}
+        if(!ConnectionClosed) {
+            exec.shutdown();
+            ConnectionClosed = true;
+            log.warning("Closing Connection : " + this.getAddr() + this.getPort());
+            this.fileSystemObserver.remove(this);
+            try {
+                if (socket != null) {
+                    socket.shutdownInput();
+                    socket.shutdownOutput();
+                    socket.close();
+                }
+            } catch (Exception e) {
+            }
+            log.warning("Connection Closed : " + this.getAddr() + this.getPort());
+        }
     }
 
     @Override

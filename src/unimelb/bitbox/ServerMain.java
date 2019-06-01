@@ -70,8 +70,11 @@ public class  ServerMain implements FileSystemObserver {
 	}
 
 	public void remove(PeerConnection peerConnection) {
-		if (connections.contains(peerConnection))
+		if (connections.contains(peerConnection)) {
 			this.connections.remove(peerConnection);
+			if(TCP_Server.class.isInstance(peerConnection))
+				TCP_Server.numberOfConnections--;
+		}
 	}
 
 	public  ArrayList<PeerConnection> getlist() {

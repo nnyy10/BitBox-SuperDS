@@ -1,25 +1,17 @@
 package unimelb.bitbox;
 
 import java.net.*;
-import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import unimelb.bitbox.util.CmdLineArgs;
-import unimelb.bitbox.Encryption;
-import unimelb.bitbox.JSON_process;
+
 import unimelb.bitbox.util.Configuration;
-import unimelb.bitbox.util.FileSystemManager;
-import unimelb.bitbox.ServerMain;
-import unimelb.bitbox.TCP_Client;
 
 import java.io.*;
 
@@ -29,21 +21,16 @@ public class ClientServer implements Runnable {
 
     private static Logger log = Logger.getLogger(Client.class.getName());
 
-    protected static void CloseConnection(Socket socket, BufferedWriter outputStream, BufferedReader inputStream) {
-        log.info("Closing Connection");
+    protected static void CloseConnection(Socket socket) {
+        log.info("ClientServer Closing Connection to BitBoxClient");
         try {
-            inputStream.close();
-        } catch (Exception e) {
-        }
-        try {
-            outputStream.close();
-        } catch (Exception e) {
-        }
-        try {
-            socket.close();
-        } catch (Exception e) {
-        }
-        socket = null;
+            if (socket != null) {
+                socket.shutdownInput();
+                socket.shutdownOutput();
+                socket.close();
+            }
+        } catch (Exception e) {}
+        log.info("ClientServer Closed Connection to BitBoxClient");
     }
 
     public static boolean send(String message, BufferedWriter outputStream) {
@@ -94,20 +81,15 @@ public class ClientServer implements Runnable {
                         return true;
                     } else {
                         log.warning("send response failed");
-                        CloseConnection(tempServerSocket, outputStream, inputStream);
                     }
                 } else {
                     log.warning("error with encryption, closing socket");
-                    CloseConnection(tempServerSocket, outputStream, inputStream);
                 }
             } else {
                 log.warning("message is null or wrong");
-                CloseConnection(tempServerSocket, outputStream, inputStream);
             }
         } catch (ParseException e) {
             log.warning(e.toString());
-            CloseConnection(tempServerSocket, outputStream, inputStream);
-            return false;
         }
         return false;
     }
@@ -121,6 +103,7 @@ public class ClientServer implements Runnable {
 
             if (payloadMSG != null) {
                 String decryptMessage = Encryption.decryptMessage(payloadMSG, sharedKey);
+                System.out.println(decryptMessage);
                 JSONObject Msg = (JSONObject) parser.parse(decryptMessage);
                 String jsonCommand = (String) Msg.get("command");
                 switch (jsonCommand) {
@@ -141,8 +124,8 @@ public class ClientServer implements Runnable {
                         send(Encryption.encryptMessage(listPeerResponse, sharedKey), outputStream);
                         return true;
                     case "CONNECT_PEER_REQUEST":
-                        String host =(String) jsonMsg.get("host");
-                        int port = ((Long) jsonMsg.get("port")).intValue();
+                        String host =(String) Msg.get("host");
+                        port = ((Long) Msg.get("port")).intValue();
                         boolean alreadyConnected = false;
                         for(PeerConnection peer: ServerMain.getInstance().getlist()){
                             if(peer.getAddr().equals(host) && peer.getPort() == port){
@@ -161,15 +144,41 @@ public class ClientServer implements Runnable {
                                 Socket try2connect = new Socket(host,port);
                                 TCP_Client newConnection = new TCP_Client(try2connect);
                                 if(newConnection.SendHandshake()){
-                                    send(Encryption.encryptSharedKey(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
+                                    send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
                                     Thread connectionThread = new Thread(newConnection);
                                     connectionThread.start();
+                                    return true;
                                 }else{
                                     log.warning("connect failed");
                                     send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey),outputStream);
                                 }
                             }
                         }
+                        break;
+                    case "DISCONNECT_PEER_REQUEST":
+                        host =(String) Msg.get("host");
+                        port = ((Long) Msg.get("port")).intValue();
+                        PeerConnection foundPeer = null;
+                        alreadyConnected = false;
+                        for (PeerConnection peer : ServerMain.getInstance().getlist()) {
+                            if (peer.getAddr().contains(host) && peer.getPort() == port) {
+                                alreadyConnected = true;
+                                foundPeer = peer;
+                                break;
+                            }
+                        }
+                        if (alreadyConnected) {
+                            //disconnect
+                            send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host, port, true), sharedKey), outputStream);
+                            foundPeer.CloseConnection();
+                            log.info("ClientServer connection closed to " + host + ":" +port);
+                            return true;
+                        } else {
+                            log.warning("not connected yet, disconnect false");
+                            send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
+                        }
+                        break;
+                        //CloseConnection(tempServerSocket,outputStream,inputStream);
 //                        else{
 //                            if(alreadyConnected){
 //                                log.info("already connected");
@@ -189,53 +198,19 @@ public class ClientServer implements Runnable {
 //
 //                            }
 //                        }
-                        break;
                     default:
-                        log.info("in client server default branch");
+                        log.info("No such command");
                         break;
                 }
             } else {
                 log.warning("Payload is null");
             }
-        } catch (ParseException e) {
+        } catch (Exception e) {
             log.warning(e.toString());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
         return false;
     }
-
-//                    case "DISCONNECT_PEER_REQUEST":
-//                        host =(String) jsonMsg.get("host");
-//                        port = (int) jsonMsg.get("port");
-//                        PeerConnection foundPeer = null;
-//                        alreadyConnected = false;
-//                        for (PeerConnection peer : ServerMain.getInstance().getlist()) {
-//                            if (peer.getAddr().equals(host) && peer.getPort() == port) {
-//                                alreadyConnected = true;
-//                                foundPeer = peer;
-//                                break;
-//                            }
-//                        }
-//                        if (alreadyConnected) {
-//                            //disconnect
-//                            foundPeer.CloseConnection();
-//                            send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host, port, true), sharedKey), outputStream);
-//                            log.info("payload sent");
-//                            //CloseConnection(tempServerSocket,outputStream,inputStream);
-//                        } else {
-//                            log.warning("not connected yet, disconnect false");
-//                            send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
-//                            //CloseConnection(tempServerSocket,outputStream,inputStream);
-//                        }
-//
-//                        break;
-//                    default:
-//                        log.warning("No such a command");
-//                        //CloseConnection(tempServerSocket,outputStream,inputStream);
-
 
     private String encryptedSharedKey;
 
@@ -261,11 +236,12 @@ public class ClientServer implements Runnable {
                 if (HandleAuthentication(readmesg, outputStream, inputStream)) {
                     readmesg = inputStream.readLine();
                     HandlePayload(readmesg, outputStream, inputStream);
-                    CloseConnection(tempServerSocket, outputStream, inputStream);
                 }
+                CloseConnection(tempServerSocket);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warning(e.toString());
             }
+            tempServerSocket = null;
         }
     }
 

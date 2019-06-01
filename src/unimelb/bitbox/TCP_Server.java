@@ -24,9 +24,4 @@ public class TCP_Server extends TCP_peerconnection implements Runnable {
 		this.fileSystemObserver.add(this);
 		log.info("server successfully connected to " + socket.getRemoteSocketAddress().toString());
 	}
-	
-	protected void finalize() throws Throwable {
-		this.CloseConnection();
-		numberOfConnections--;
-	}
 }
