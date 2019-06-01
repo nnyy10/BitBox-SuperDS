@@ -2,9 +2,7 @@ package unimelb.bitbox;
 
 import java.net.*;
 
-import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 import org.json.simple.JSONObject;
@@ -20,6 +18,52 @@ public class ClientServer implements Runnable {
     public DatagramSocket datagramSocket = null;
 
     private static Logger log = Logger.getLogger(Client.class.getName());
+
+    private String sharedKey = "";
+
+    private int serverPort;
+    private ServerSocket serverSocket = null;
+    private boolean isStopped = false;
+    private Thread runningThread = null;
+    private Socket tempServerSocket = null;
+    private String readmesg;
+    int port;
+    private String encryptedSharedKey;
+
+    ClientServer(int port) {
+        log.info("Starting ClinetServer, listening for BitBox Client on port: " + port);
+        this.serverPort = port;
+    }
+
+    public void run() {
+        log.info("Starting TCP server");
+
+        synchronized (this) {
+            this.runningThread = Thread.currentThread();
+        }
+        openServerSocket();
+        while (!isStopped()) {
+            tempServerSocket = null;
+            try {
+                tempServerSocket = this.serverSocket.accept();
+                log.info("ClientServer accepted new client");
+                BufferedReader inputStream = new BufferedReader(new InputStreamReader(tempServerSocket.getInputStream(), "UTF-8"));
+                BufferedWriter outputStream = new BufferedWriter(new OutputStreamWriter(tempServerSocket.getOutputStream(), "UTF-8"));
+                readmesg = inputStream.readLine();
+                JSONParser parser = new JSONParser();
+                JSONObject jsonMsg = (JSONObject) parser.parse(readmesg);
+
+                if (HandleAuthentication(readmesg, outputStream, inputStream)) {
+                    readmesg = inputStream.readLine();
+                    HandlePayload(readmesg, outputStream, inputStream);
+                }
+                CloseConnection(tempServerSocket);
+            } catch (Exception e) {
+                log.warning(e.toString());
+            }
+            tempServerSocket = null;
+        }
+    }
 
     protected static void CloseConnection(Socket socket) {
         log.info("ClientServer Closing Connection to BitBoxClient");
@@ -43,25 +87,6 @@ public class ClientServer implements Runnable {
             log.warning("PeerClient encountered ERROR when sending message: " + message);
             return false;
         }
-    }
-
-    private String sharedKey = "";
-
-    private int serverPort = 0;
-    private ServerSocket serverSocket = null;
-    private boolean isStopped = false;
-    private Thread runningThread = null;
-
-    Socket tempServerSocket = null;
-
-    String Smesg, readmesg, host;
-    int port;
-
-    protected ExecutorService threadPool = Executors.newFixedThreadPool(10);
-
-    ClientServer(int port) {
-        log.info("Starting ClinetServer, listening for BitBox Client on port: " + port);
-        this.serverPort = port;
     }
 
     private boolean HandleAuthentication(String message, BufferedWriter outputStream, BufferedReader inputStream) {
@@ -95,7 +120,6 @@ public class ClientServer implements Runnable {
     }
 
     private boolean HandlePayload(String message, BufferedWriter outputStream, BufferedReader inputStream) {
-
         try {
             JSONParser parser = new JSONParser();
             JSONObject jsonMsg = (JSONObject) parser.parse(message);
@@ -108,7 +132,7 @@ public class ClientServer implements Runnable {
                 String jsonCommand = (String) Msg.get("command");
                 switch (jsonCommand) {
                     case "LIST_PEERS_REQUEST":
-                        ArrayList<PeerConnection> connections = ServerMain.getInstance().getlist();
+                        CopyOnWriteArrayList<PeerConnection> connections = ServerMain.getInstance().getlist();
                         String listPeerResponse = "";
                         if (connections.size()!=0) {
                             String[] tempIPlist = new String[connections.size()];
@@ -153,6 +177,16 @@ public class ClientServer implements Runnable {
                                     send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey),outputStream);
                                 }
                             }
+                        } else{
+                            if(alreadyConnected){
+                                log.info("already connected");
+                                send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
+                            }
+                            else{
+                                UDP_peerconnection udpPeer = new UDP_peerconnection(datagramSocket, InetAddress.getByName(host), port);
+                                udpPeer.sendHS();
+                                send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
+                            }
                         }
                         break;
                     case "DISCONNECT_PEER_REQUEST":
@@ -178,26 +212,6 @@ public class ClientServer implements Runnable {
                             send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
                         }
                         break;
-                        //CloseConnection(tempServerSocket,outputStream,inputStream);
-//                        else{
-//                            if(alreadyConnected){
-//                                log.info("already connected");
-//                                send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
-//                                //CloseConnection(tempServerSocket,outputStream,inputStream);
-//                            }
-//                            else{
-//                                //boolean connected = false;
-//
-//                                //connect in udp mode and default!
-//                                //if(){}else{}
-//                                UDP_peerconnection udpPeer = new UDP_peerconnection(datagramSocket, InetAddress.getByName(host), port);
-//                                udpPeer.sendHS();
-//
-//                                send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
-//                                //CloseConnection(tempServerSocket, outputStream, inputStream);
-//
-//                            }
-//                        }
                     default:
                         log.info("No such command");
                         break;
@@ -212,52 +226,9 @@ public class ClientServer implements Runnable {
         return false;
     }
 
-    private String encryptedSharedKey;
-
-    public void run() {
-        log.info("Starting TCP server");
-
-        synchronized (this) {
-            this.runningThread = Thread.currentThread();
-        }
-
-        openServerSocket();
-        while (!isStopped()) {
-            tempServerSocket = null;
-            try {
-                tempServerSocket = this.serverSocket.accept();
-                log.info("ClientServer accepted new client");
-                BufferedReader inputStream = new BufferedReader(new InputStreamReader(tempServerSocket.getInputStream(), "UTF-8"));
-                BufferedWriter outputStream = new BufferedWriter(new OutputStreamWriter(tempServerSocket.getOutputStream(), "UTF-8"));
-                readmesg = inputStream.readLine();
-                JSONParser parser = new JSONParser();
-                JSONObject jsonMsg = (JSONObject) parser.parse(readmesg);
-
-                if (HandleAuthentication(readmesg, outputStream, inputStream)) {
-                    readmesg = inputStream.readLine();
-                    HandlePayload(readmesg, outputStream, inputStream);
-                }
-                CloseConnection(tempServerSocket);
-            } catch (Exception e) {
-                log.warning(e.toString());
-            }
-            tempServerSocket = null;
-        }
-    }
-
     private synchronized boolean isStopped() {
         return this.isStopped;
     }
-
-    public synchronized void stop() {
-        this.isStopped = true;
-        try {
-            this.serverSocket.close();
-        } catch (IOException e) {
-            throw new RuntimeException("Error closing server", e);
-        }
-    }
-
 
     private void openServerSocket() {
         try {
