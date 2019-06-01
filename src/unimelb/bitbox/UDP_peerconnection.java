@@ -1,5 +1,7 @@
 package unimelb.bitbox;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.json.simple.JSONObject;
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemManager;
 
@@ -87,8 +89,14 @@ public class UDP_peerconnection extends PeerConnection{
     }
 
     public static boolean isResponseMessage(String message){
+
         //todo
-        return true;
+        Boolean isResponseMessage;
+        if(message.indexOf("_RESPONSE")!=-1) {
+            isResponseMessage=false;
+        }else{
+            isResponseMessage=true;}
+            return isResponseMessage;
     }
 
     @Override
@@ -114,7 +122,20 @@ public class UDP_peerconnection extends PeerConnection{
                         }
                         counter++;
                         if (counter >= retry) {
+
                             //todo cancel connection
+                            UDP_peerconnection udpPeer = new UDP_peerconnection(ds, address, remotePort);
+                            if(JSON_msg.equals("HANDSHAKE_REQUEST"))
+                            {
+                                RemovePeerToWaitingList(udpPeer);
+                            }else
+                                {
+
+                                fileSystemObserver.remove(udpPeer);
+                                }
+
+
+
                             timer.cancel();
                         }
                     }
