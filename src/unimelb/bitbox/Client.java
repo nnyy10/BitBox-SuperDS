@@ -97,6 +97,7 @@ public class Client {
                             String encryptedSharedKey = (String) obj.get("AES128");
                             //String encryptedSharedKey = null;
                             String sharedKey = Encryption.decryptSharedKey(encryptedSharedKey, "id_rsa");
+                            //System.out.println(sharedKey);
                             String Msg = JSON_process.LIST_PEER_REQUEST();
                             log.info("message ready to send: " + Msg);
                             String encryptMSG = Encryption.encryptMessage(Msg, sharedKey);
@@ -106,15 +107,23 @@ public class Client {
                             else{
                                 log.info("send payload successfully");
                                 String payloadMsg = inputStream.readLine();
+                                //System.out.println(payloadMsg);
                                 String list_peer = Encryption.decryptMessage(payloadMsg, sharedKey);
+                                System.out.println(list_peer);
                                 JSONObject obj1 = (JSONObject) JSparser.parse(list_peer);
                                 if(obj1.get("command").equals("LIST_PEERS_RESPONSE")){
                                     JSONArray peers =(JSONArray) obj1.get("peers");
-                                    for (int i = 0; i < peers.size();i++) {
-                                        JSONObject peer = (JSONObject) peers.get(i);
-                                        JSONObject host = (JSONObject) peer.get("host");
-                                        JSONObject port = (JSONObject) peer.get("port");
-                                        System.out.println("peer: "+ i +". " + host + ":"+ port);
+                                    if(peers.size()!=0){
+                                        for (int i = 0; i < peers.size();i++) {
+                                            JSONObject peer = (JSONObject) peers.get(i);
+                                            String host = (String) peer.get("host");
+                                            long port = (long) peer.get("port");
+                                            System.out.println("peer: "+ host + ":"+ port);
+                                        }
+                                    }else{
+                                        System.out.println("No peers in list");
+                                        CloseConnection(socket,outputStream,inputStream);
+                                        return;
                                     }
 
                                     CloseConnection(socket, outputStream,inputStream);
