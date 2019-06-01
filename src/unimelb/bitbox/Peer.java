@@ -51,38 +51,21 @@ public class Peer
 				for (String peer_string : array_of_peers) {
 					peer_pair = peer_string.split(":");
 					log.info("Trying to connect peer client to: " + peer_pair[0] + ":" + peer_pair[1]);
-					if (connect.size() != 0) {
-						for (int i = 0; i < connect.size(); i++) {
-							if (!peer_pair[0].equals(((TCP_peerconnection) connect.get(i)).socket.getRemoteSocketAddress().toString())) {
-								try {
-									outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
-									outGoingConnection = new TCP_Client(outGoingSocket);
-									if (outGoingConnection.SendHandshake()) {
-										connectionThread = new Thread(outGoingConnection);
-										connectionThread.start();
-										log.info("Connected to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
-									}
-								} catch (Exception e) {
-									triedPeerCnt++;
-									log.info("Can't connect to: " + peer_pair[0] + ":" + peer_pair[1]);
-									log.info("Try connecting to another peer");
-								}
-							} else
-								log.info("Already connected to " + "host: " + peer_pair[0] + " port: " + peer_pair[1] + ":) ");
-						}
-					} else {
-						try {
-							outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
-							outGoingConnection = new TCP_Client(outGoingSocket);
+					try {
+						outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
+						outGoingConnection = new TCP_Client(outGoingSocket);
+						if(outGoingConnection.SendHandshake()) {
 							connectionThread = new Thread(outGoingConnection);
 							connectionThread.start();
 							log.info("Connected to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
-						} catch (Exception e) {
-							triedPeerCnt++;
-							log.info("Can't connect to: " + peer_pair[0] + ":" + peer_pair[1]);
-							log.info("Try connecting to another peer");
-						}
+						} else
+							continue;
+					} catch (Exception e) {
+						triedPeerCnt++;
+						log.info("Can't connect to: " + peer_pair[0] + ":" + peer_pair[1]);
+						log.info("Try connecting to another peer");
 					}
+
 				}
 			}
 
@@ -92,7 +75,6 @@ public class Peer
 			}
 		}
 //-------------------UDP--------------------------------------------------------------------------------------------
-
 		else {
 			String port_string = Configuration.getConfigurationValue("udpPort").replaceAll("\\s+","");
 			int port = Integer.parseInt(port_string);

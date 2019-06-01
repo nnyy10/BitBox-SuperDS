@@ -68,7 +68,7 @@ public class ClientServer implements Runnable {
     Socket tempServerSocket = null;
 
     String Smesg, readmesg, host;
-    long port;
+    int port;
 
     protected ExecutorService threadPool = Executors.newFixedThreadPool(10);
 
@@ -141,44 +141,36 @@ public class ClientServer implements Runnable {
                         send(Encryption.encryptMessage(listPeerResponse, sharedKey), outputStream);
                         return true;
                     case "CONNECT_PEER_REQUEST":
-//                        String host =(String) jsonMsg.get("host");
-//                        Long port = (Long) jsonMsg.get("port");
-//                        boolean alreadyConnected = false;
-//                        if (Configuration.getConfigurationValue("mode").equals("tcp") ||
-//                                Configuration.getConfigurationValue("mode").equals("TCP")){
-//                            for(PeerConnection peer: ServerMain.getInstance().getlist()){
-//                                if(peer.getAddr().equals(host) && peer.getPort() == port){
-//                                    alreadyConnected = true;
-//                                    break;
-//                                }
-//                            }
-//                            if(alreadyConnected){
-//                                log.info("already connected");
-//                                String encryptedMsg = Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey);
-//                                send(encryptedMsg,outputStream);
-//                                //CloseConnection(tempServerSocket,outputStream,inputStream);
-//                            }
-//                            else{
-//                                Socket try2connect = new Socket(host,port);
-//                                TCP_Client newConnection = new TCP_Client(try2connect);
-//
-//                                if(newConnection.SendHandshake()){
-//                                    send(Encryption.encryptSharedKey(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
-//                                    //CloseConnection(tempServerSocket,outputStream, inputStream);
-//                                }else{
-//                                    log.warning("connect failed");
-//                                    send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey),outputStream);
-//                                    //CloseConnection(tempServerSocket,outputStream,inputStream);
-//                                }
-//
-//                            }
-//                        }else{
-//                            for(PeerConnection peer: ServerMain.getInstance().getlist()){
-//                                if(peer.getAddr().equals(host) && peer.getPort() == port){
-//                                    alreadyConnected = true;
-//                                    break;
-//                                }
-//                            }
+                        String host =(String) jsonMsg.get("host");
+                        int port = ((Long) jsonMsg.get("port")).intValue();
+                        boolean alreadyConnected = false;
+                        for(PeerConnection peer: ServerMain.getInstance().getlist()){
+                            if(peer.getAddr().equals(host) && peer.getPort() == port){
+                                alreadyConnected = true;
+                                break;
+                            }
+                        }
+                        String mode = Configuration.getConfigurationValue("mode");
+                        if (mode.equals("tcp") || mode.equals("TCP")){
+                            if(alreadyConnected){
+                                log.info("already connected");
+                                String msg = JSON_process.CONNECT_PEER_RESPONSE(host, port,false);
+                                send(Encryption.encryptMessage(msg, sharedKey),outputStream);
+                            }
+                            else{
+                                Socket try2connect = new Socket(host,port);
+                                TCP_Client newConnection = new TCP_Client(try2connect);
+                                if(newConnection.SendHandshake()){
+                                    send(Encryption.encryptSharedKey(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
+                                    Thread connectionThread = new Thread(newConnection);
+                                    connectionThread.start();
+                                }else{
+                                    log.warning("connect failed");
+                                    send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey),outputStream);
+                                }
+                            }
+                        }
+//                        else{
 //                            if(alreadyConnected){
 //                                log.info("already connected");
 //                                send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
@@ -197,8 +189,7 @@ public class ClientServer implements Runnable {
 //
 //                            }
 //                        }
-//
-//                        break;
+                        break;
                     default:
                         log.info("in client server default branch");
                         break;
@@ -208,6 +199,10 @@ public class ClientServer implements Runnable {
             }
         } catch (ParseException e) {
             log.warning(e.toString());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return false;
     }
