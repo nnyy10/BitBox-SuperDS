@@ -28,9 +28,11 @@ public class Peer
         String all_peers = Configuration.getConfigurationValue("peers").replaceAll("\\s+","");
         String[] array_of_peers = all_peers.split(",");
 
-        int clinetServerPort = Integer.parseInt(Configuration.getConfigurationValue("BBClientTCPport"));
+        int clinetServerPort = Integer.parseInt(Configuration.getConfigurationValue("BBclientTCPport"));
 
         ClientServer clientServer = new ClientServer(clinetServerPort);
+
+
 
         if(mode.equals("tcp")) {
 			String port_string = Configuration.getConfigurationValue("port").replaceAll("\\s+","");
@@ -45,42 +47,41 @@ public class Peer
 			int triedPeerCnt = 0;
 			ArrayList<PeerConnection> connect = ServerMain.getInstance().getlist();
 			//String host; int port;
-
-			for (String peer_string : array_of_peers) {
-				peer_pair = peer_string.split(":");
-				log.info("Trying to connect peer client to: " +peer_pair[0] + ":" + peer_pair[1]);
-				if(connect.size()!= 0){
-					for(int i = 0; i< connect.size(); i++){
-						if(!peer_pair[0].equals(((TCP_peerconnection)connect.get(i)).socket.getRemoteSocketAddress().toString())){
-							try{
-								outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
-								outGoingConnection = new TCP_Client(outGoingSocket);
-								if(outGoingConnection.SendHandshake()) {
-									connectionThread = new Thread(outGoingConnection);
-									connectionThread.start();
-									log.info("Connected to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
+			if(!(array_of_peers.length == 1 && array_of_peers[0].equals(""))) {
+				for (String peer_string : array_of_peers) {
+					peer_pair = peer_string.split(":");
+					log.info("Trying to connect peer client to: " + peer_pair[0] + ":" + peer_pair[1]);
+					if (connect.size() != 0) {
+						for (int i = 0; i < connect.size(); i++) {
+							if (!peer_pair[0].equals(((TCP_peerconnection) connect.get(i)).socket.getRemoteSocketAddress().toString())) {
+								try {
+									outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
+									outGoingConnection = new TCP_Client(outGoingSocket);
+									if (outGoingConnection.SendHandshake()) {
+										connectionThread = new Thread(outGoingConnection);
+										connectionThread.start();
+										log.info("Connected to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
+									}
+								} catch (Exception e) {
+									triedPeerCnt++;
+									log.info("Can't connect to: " + peer_pair[0] + ":" + peer_pair[1]);
+									log.info("Try connecting to another peer");
 								}
-							}
-							catch (Exception e){
-								triedPeerCnt++;
-								log.info("Can't connect to: " + peer_pair[0] + ":" + peer_pair[1]);
-								log.info("Try connecting to another peer");
-							}
+							} else
+								log.info("Already connected to " + "host: " + peer_pair[0] + " port: " + peer_pair[1] + ":) ");
 						}
-						else log.info("Already connected to " + "host: "+ peer_pair[0] + " port: " + peer_pair[1]+ ":) ");
-					}
-				} else{
-					try{
-						outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
-						outGoingConnection = new TCP_Client(outGoingSocket);
-						connectionThread = new Thread(outGoingConnection);
-						connectionThread.start();
-						log.info("Connected to "+"host: "+peer_pair[0]+" port: "+peer_pair[1]);
-					}
-					catch (Exception e){
-						triedPeerCnt++;
-						log.info("Can't connect to: " + peer_pair[0] + ":" + peer_pair[1]);
-						log.info("Try connecting to another peer");
+					} else {
+						try {
+							outGoingSocket = new Socket(peer_pair[0], Integer.parseInt(peer_pair[1]));
+							outGoingConnection = new TCP_Client(outGoingSocket);
+							connectionThread = new Thread(outGoingConnection);
+							connectionThread.start();
+							log.info("Connected to " + "host: " + peer_pair[0] + " port: " + peer_pair[1]);
+						} catch (Exception e) {
+							triedPeerCnt++;
+							log.info("Can't connect to: " + peer_pair[0] + ":" + peer_pair[1]);
+							log.info("Try connecting to another peer");
+						}
 					}
 				}
 			}

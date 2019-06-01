@@ -1,22 +1,15 @@
 package unimelb.bitbox;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import org.json.simple.JSONObject;
 import unimelb.bitbox.util.Configuration;
-import unimelb.bitbox.util.FileSystemManager;
 
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 public class UDP_peerconnection extends PeerConnection{
