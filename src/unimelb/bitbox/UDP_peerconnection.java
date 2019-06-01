@@ -152,6 +152,7 @@ public class UDP_peerconnection extends PeerConnection{
 
     @Override
     protected void CloseConnection() {
+        ServerMain.getInstance().remove(this);
         UDP_peerconnection.RemovePeerToWaitingList(this);
     }
 

@@ -1,7 +1,6 @@
 package unimelb.bitbox;
 
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,9 +21,11 @@ import unimelb.bitbox.ServerMain;
 import unimelb.bitbox.TCP_Client;
 
 import java.io.*;
-import java.net.Socket;
 
 public class ClientServer implements Runnable{
+
+    public DatagramSocket datagramSocket = null;
+
     private static Logger log = Logger.getLogger(Client.class.getName());
 
     protected static void CloseConnection(Socket socket, BufferedWriter outputStream, BufferedReader inputStream) {
@@ -55,10 +56,10 @@ public class ClientServer implements Runnable{
     private String sharedKey = Encryption.getSharedKey();
 
 
-    protected int serverPort = 0;
-    protected ServerSocket serverSocket = null;
-    protected boolean isStopped = false;
-    protected Thread runningThread = null;
+    private int serverPort = 0;
+    private ServerSocket serverSocket = null;
+    private boolean isStopped = false;
+    private Thread runningThread = null;
 
     Socket tempServerSocket = null;
 
@@ -66,7 +67,7 @@ public class ClientServer implements Runnable{
 
     protected ExecutorService threadPool = Executors.newFixedThreadPool(10);
 
-    public ClientServer(int port){
+    ClientServer(int port){
         this.serverPort = port;
     }
 
@@ -116,6 +117,7 @@ public class ClientServer implements Runnable{
                                         log.info("already connected");
                                         String encryptedMsg = Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host, port,false),sharedKey);
                                         send(encryptedMsg,outputStream);
+                                        CloseConnection(tempServerSocket,outputStream,inputStream);
                                     }
                                     else{
                                         Socket try2connect = new Socket(host,port);
@@ -143,9 +145,15 @@ public class ClientServer implements Runnable{
                                         CloseConnection(tempServerSocket,outputStream,inputStream);
                                     }
                                     else{
+                                        //boolean connected = false;
+
                                         //connect in udp mode and default!
                                         //if(){}else{}
+                                        UDP_peerconnection udpPeer = new UDP_peerconnection(datagramSocket, InetAddress.getByName(host), port);
+                                        udpPeer.sendHS();
+
                                         send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
+                                        CloseConnection(tempServerSocket, outputStream, inputStream);
 
                                     }
                                 }
@@ -154,22 +162,25 @@ public class ClientServer implements Runnable{
                             case "DISCONNECT_PEER_REQUEST":
                                 host =(String) jsonMsg.get("host");
                                 port = (int) jsonMsg.get("port");
+                                PeerConnection foundPeer = null;
                                 alreadyConnected = false;
-                                if (Configuration.getConfigurationValue("mode").equals("tcp") ||
-                                        Configuration.getConfigurationValue("mode").equals("TCP")){
-                                    for(PeerConnection peer: ServerMain.getInstance().getlist()){
-                                        if(peer.getAddr().equals(host) && peer.getPort() == port){
-                                            alreadyConnected = true;
-                                            break;
-                                        }
+                                for (PeerConnection peer : ServerMain.getInstance().getlist()) {
+                                    if (peer.getAddr().equals(host) && peer.getPort() == port) {
+                                        alreadyConnected = true;
+                                        foundPeer = peer;
+                                        break;
                                     }
-                                    if(alreadyConnected){
+                                }
+                                if (alreadyConnected) {
                                         //disconnect
-                                        //if(){}else{}
-                                        send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host,port, true),sharedKey),outputStream);
-                                    }else {
-                                        log.warning("not connected yet");
-                                    }
+                                    foundPeer.CloseConnection();
+                                    send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host, port, true), sharedKey), outputStream);
+                                    log.info("payload sent");
+                                    CloseConnection(tempServerSocket,outputStream,inputStream);
+                                } else {
+                                    log.warning("not connected yet, disconnect false");
+                                    send(Encryption.encryptMessage(JSON_process.DISCONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
+                                    CloseConnection(tempServerSocket,outputStream,inputStream);
                                 }
 
                                 break;
