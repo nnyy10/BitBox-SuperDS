@@ -34,7 +34,7 @@ public class Client {
         try {
             outputStream.write(message + "\n");
             outputStream.flush();
-            log.info("Peer sent message: " + message);
+            //log.info("Peer sent message: " + message);
             return true;
         } catch (Exception e) {
             log.warning("Peer encountered ERROR when sending message: " + message);
@@ -107,7 +107,7 @@ public class Client {
                                         for (int i = 0; i < peers.size();i++) {
                                             JSONObject peer = (JSONObject) peers.get(i);
                                             String host = (String) peer.get("host");
-                                            int port = (int) peer.get("port");
+                                            int port = ((Long) peer.get("port")).intValue();
                                             System.out.println("peer: "+ host + ":"+ port);
                                         }
                                     }else{
@@ -190,7 +190,7 @@ public class Client {
                                 JSONObject obj1 = (JSONObject) JSparser.parse(disconnect_response);
                                 String msg = (String) obj1.get("message");
                                 String host = (String) obj1.get("host");
-                                int port = (int) obj1.get("port");
+                                int port = ((Long) obj1.get("port")).intValue();
                                 if(host!=null){
                                     System.out.println(msg+ " "+ host+":"+port);
                                 }else{
