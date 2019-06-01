@@ -90,12 +90,9 @@ public class UDP_peerconnection extends PeerConnection{
 
     public static boolean isResponseMessage(String message){
 
-        //todo
+
         Boolean isResponseMessage;
-        if(message.indexOf("_RESPONSE")!=-1) {
-            isResponseMessage=false;
-        }else{
-            isResponseMessage=true;}
+        isResponseMessage= !message.contains("_RESPONSE");
             return isResponseMessage;
     }
 
