@@ -81,12 +81,13 @@ public class Peer {
             new Thread(udp_server).start();
 
             String[] peer_pair;
-
-            for (String peer_string : array_of_peers) {
-                peer_pair = peer_string.split(":");
-                log.info("Trying to connect peer client to: " + peer_pair[0] + ":" + peer_pair[1]);
-                UDP_peerconnection udpPeer = new UDP_peerconnection(ds, InetAddress.getByName(peer_pair[0]), Integer.parseInt(peer_pair[1]));
-                udpPeer.sendHS();
+            if (!(array_of_peers.length == 1 && array_of_peers[0].equals(""))) {
+                for (String peer_string : array_of_peers) {
+                    peer_pair = peer_string.split(":");
+                    log.info("Trying to connect peer client to: " + peer_pair[0] + ":" + peer_pair[1]);
+                    UDP_peerconnection udpPeer = new UDP_peerconnection(ds, InetAddress.getByName(peer_pair[0]), Integer.parseInt(peer_pair[1]));
+                    udpPeer.sendHS();
+                }
             }
         }
         new Thread(clientServer).start();

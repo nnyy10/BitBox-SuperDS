@@ -183,9 +183,9 @@ public class ClientServer implements Runnable {
                                 send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,false),sharedKey),outputStream);
                             }
                             else{
+                                send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
                                 UDP_peerconnection udpPeer = new UDP_peerconnection(datagramSocket, InetAddress.getByName(host), port);
                                 udpPeer.sendHS();
-                                send(Encryption.encryptMessage(JSON_process.CONNECT_PEER_RESPONSE(host,port,true),sharedKey),outputStream);
                             }
                         }
                         break;
