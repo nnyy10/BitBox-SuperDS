@@ -104,8 +104,6 @@ public class UDP_peerconnection extends PeerConnection{
 
             if(!isResponseMessage(JSON_msg)) {
                 Timer timer = new Timer();
-                int begin = 0;
-                int timeInterval = this.TimeoutInverval;
                 timer.schedule(new TimerTask() {
                     int counter = 0;
                     int retry = Integer.parseInt(Configuration.getConfigurationValue("UDPretry"));
@@ -136,10 +134,11 @@ public class UDP_peerconnection extends PeerConnection{
                             timer.cancel();
                         }
                     }
-                }, begin, timeInterval);
+                }, 0, TimeoutInverval); // timer to resend after interval. give up after count has been reached
+                // add the timer and the remote peer's IP and port and the expected response so the timer can be stopped when this response is receieved
                 waitingForResponseThreads.add(new ThreadResponsePair(timer, this.getInetAddr(), this.getPort(), JSON_process.GENERATE_RESPONSE_MSG(JSON_msg)));
             } else
-                ds.send(dp_send);
+                ds.send(dp_send); // if the message sent is a response message, don't need to retry
             log.info("UDP peer sent message to host: " + address.toString() + " port: " + remotePort + " msg:" + JSON_msg);
             log.info("sent message length = " + mes.length);
         } catch (IOException e) {

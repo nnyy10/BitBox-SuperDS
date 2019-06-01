@@ -1,10 +1,11 @@
 {
-  "file_name": "bitbox.jar",
+  "file_name": "example.txt",
   "file_created_by": "naiyun123",
   "file_MD5": "d41d8cd98f00b204e9800998ecf8427e",
   "shared_key": "examplePassword332",
   "last_modified": "3049382",
   "last_modified_by": "naiyun123",
-  "read_only_permission": ["derek123"],
+  "read_only_permission": ["derek"],
   "write_permission": ["rich123", "naiyun123"]
 }
+

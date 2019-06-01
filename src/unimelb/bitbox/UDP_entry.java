@@ -20,7 +20,7 @@ public class UDP_entry implements Runnable {
     private boolean isStopped = false;
     private Thread runningThread = null;
     private static Logger log = Logger.getLogger(PeerConnection.class.getName());
-    private DatagramSocket ds;
+    public DatagramSocket ds;
     private DatagramPacket dp_receive = null;
 
     private ServerMain fileSystemObserver = null;
@@ -109,15 +109,13 @@ public class UDP_entry implements Runnable {
             case "HANDSHAKE_REQUEST":
                 String responseMsg = JSON_process.HANDSHAKE_RESPONSE(hostAddr, hostPort);
                 UDP_peerconnection udpPeer = new UDP_peerconnection(ds, receieveAddr, receivePort);
-                udpPeer.send(responseMsg);
-                this.fileSystemObserver.add(udpPeer);
-                new Thread(()-> {
-                    for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
-                        String syn;
-                        syn = ServerMain.getInstance().FileSystemEventToJSON(event);
-                        udpPeer.send(syn);
-                    }
-                }).run();
+                udpPeer.send(responseMsg); // send handshake response
+                this.fileSystemObserver.add(udpPeer); // add the new peer connection to all connected peer list
+                // Sync 2 peers after connection establishment
+                for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
+                    String syncMessage = ServerMain.getInstance().FileSystemEventToJSON(event);
+                    udpPeer.send(syncMessage);
+                }
                 break;
             case "HANDSHAKE_RESPONSE":
                 for(UDP_peerconnection peer: UDP_peerconnection.waitingForHandshakeConnections){
@@ -142,7 +140,7 @@ public class UDP_entry implements Runnable {
                         if(UDP_peerconnection.isResponseMessage(message)){
                             for(UDP_peerconnection.ThreadResponsePair trp: UDP_peerconnection.waitingForResponseThreads){
                                 if(trp.addr.equals(receieveAddr) && trp.port == receivePort && JSON_process.RESPONSE_EQUALS(trp.JSON_Response, message)){
-                                    trp.timer.cancel();
+                                    trp.timer.cancel(); // If there is an active timer thread waiting for this response, stop this timer thread
                                     break;
                                 }
                             }
