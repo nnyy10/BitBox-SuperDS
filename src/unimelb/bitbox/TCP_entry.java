@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import unimelb.bitbox.util.Configuration;
 
 public class TCP_entry implements Runnable {
 
@@ -23,6 +24,7 @@ public class TCP_entry implements Runnable {
     protected Thread runningThread = null;
     private static Logger log = Logger.getLogger(PeerConnection.class.getName());
 
+    private int maxConnection = Integer.parseInt(Configuration.getConfigurationValue("maximumIncommingConnections"));
     Socket tempServerSocket = null;
 
     String readmesg;
@@ -73,7 +75,7 @@ public class TCP_entry implements Runnable {
                     continue;
                 }
 
-                if (TCP_Server.numberOfConnections < 10) {
+                if (TCP_Server.numberOfConnections < maxConnection) {
                     String handshakeReponseMsg = JSON_process.HANDSHAKE_RESPONSE(tempServerSocket.toString(), tempServerSocket.getPort());
                     try {
                         outputStream.write(handshakeReponseMsg + "\n");

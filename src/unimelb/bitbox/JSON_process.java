@@ -83,11 +83,13 @@ public class JSON_process {
         obj.put("message", "connection limit reached");
         obj.put("command", "CONNECTION_REFUSED");
         JSONArray list = new JSONArray();
-        for (int i = 0; i < host.length; i++) {
-            JSONObject obj2 = new JSONObject();
-            obj2.put("host", host[i]);
-            obj2.put("port", port[i]);
-            list.add(obj2);
+        if (host != null && port != null) {
+            for (int i = 0; i < host.length; i++) {
+                JSONObject obj2 = new JSONObject();
+                obj2.put("host", host[i]);
+                obj2.put("port", port[i]);
+                list.add(obj2);
+            }
         }
         obj.put("peers", list);
         return obj.toString();

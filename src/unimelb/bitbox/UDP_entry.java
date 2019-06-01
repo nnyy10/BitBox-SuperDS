@@ -3,12 +3,10 @@ package unimelb.bitbox;
 import java.io.*;
 import java.net.*;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -22,6 +20,8 @@ public class UDP_entry implements Runnable {
     private static Logger log = Logger.getLogger(PeerConnection.class.getName());
     public DatagramSocket ds;
     private DatagramPacket dp_receive = null;
+
+    private int maxConnection = Integer.parseInt(Configuration.getConfigurationValue("maximumIncommingConnections"));
 
     private ServerMain fileSystemObserver = null;
     protected ExecutorService threadPool = Executors.newFixedThreadPool(10);
@@ -106,14 +106,36 @@ public class UDP_entry implements Runnable {
 
         switch (command) {
             case "HANDSHAKE_REQUEST":
-                String responseMsg = JSON_process.HANDSHAKE_RESPONSE(hostAddr, hostPort);
-                UDP_peerconnection udpPeer = new UDP_peerconnection(ds, receieveAddr, receivePort);
-                udpPeer.send(responseMsg); // send handshake response
-                this.fileSystemObserver.add(udpPeer); // add the new peer connection to all connected peer list
-                // Sync 2 peers after connection establishment
-                for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
-                    String syncMessage = ServerMain.getInstance().FileSystemEventToJSON(event);
-                    udpPeer.send(syncMessage);
+                if(ServerMain.getInstance().getlist().size() < maxConnection) {
+                    String responseMsg = JSON_process.HANDSHAKE_RESPONSE(hostAddr, hostPort);
+                    UDP_peerconnection udpPeer = new UDP_peerconnection(ds, receieveAddr, receivePort);
+                    udpPeer.send(responseMsg); // send handshake response
+                    this.fileSystemObserver.add(udpPeer); // add the new peer connection to all connected peer list
+                    // Sync 2 peers after connection establishment
+                    for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
+                        String syncMessage = ServerMain.getInstance().FileSystemEventToJSON(event);
+                        udpPeer.send(syncMessage);
+                    }
+                } else{
+                    CopyOnWriteArrayList<PeerConnection> connections = ServerMain.getInstance().getlist();
+                    String listPeerResponse = "";
+                    if (connections.size()!=0) {
+                        String[] tempIPlist = new String[connections.size()];
+                        int[] tempPrlist = new int[connections.size()];
+                        for (int i = 0; i < connections.size(); i++) {
+                            tempIPlist[i] = connections.get(i).getAddr();
+                            tempPrlist[i] = connections.get(i).getPort();
+                        }
+                        listPeerResponse = JSON_process.CONNECTION_REFUSED(tempIPlist, tempPrlist);
+                    }else
+                        listPeerResponse = JSON_process.CONNECTION_REFUSED(null, null);
+                    try {
+                        byte[] mes = listPeerResponse.getBytes("utf-8");
+                        DatagramPacket dp_send = new DatagramPacket(mes, mes.length, receieveAddr, receivePort);
+                        ds.send(dp_send);
+                    }catch (Exception e){
+                        log.warning(e.toString());
+                    }
                 }
                 break;
             case "HANDSHAKE_RESPONSE":
@@ -146,7 +168,28 @@ public class UDP_entry implements Runnable {
                     UDP_peerconnection.waitingForResponseThreads.remove(threadResponsePair);
                 }
                 break;
+            case "CONNECTION_REFUSED":
+                try {
+                    JSONArray peers = (JSONArray) obj.get("peers");
+                    CopyOnWriteArrayList<PeerConnection> connect = ServerMain.getInstance().getlist();
+                    for (int i = 0; i < peers.size(); i++) {
+                        obj = (JSONObject) peers.get(i);
+                        String host = (String) obj.get("host");
+                        int port = (int) obj.get("port");
+                        for (int j = 0; j < connect.size(); j++) {
+                            if (!host.equals(connect.get(j).getAddr()) && port != connect.get(j).getPort()) {
+                                UDP_peerconnection udpPeer = new UDP_peerconnection(ds, InetAddress.getByName(host), port);
+                                udpPeer.sendHS();
+                            }
+                        }
+                    }
+                } catch (Exception e){
+                    log.warning("Handling connection refused failed");
+                    log.warning(e.toString());
+                }
+                break;
             default:
+                System.out.println(ServerMain.getInstance().getlist().size());
                 for (PeerConnection peer : ServerMain.getInstance().getlist()) {
                     UDP_peerconnection udpPeerConnection = (UDP_peerconnection) peer;
                     if (udpPeerConnection.getPort() == receivePort && udpPeerConnection.getInetAddr().equals(receieveAddr)) {
