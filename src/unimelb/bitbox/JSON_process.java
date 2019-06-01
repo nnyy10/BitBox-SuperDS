@@ -39,37 +39,37 @@ public class JSON_process {
             JSONObject Response2 = (JSONObject) parser.parse(response2);
             String cmd1 = (String) Response1.get("command");
             String cmd2 = (String) Response2.get("command");
-            if(cmd1.contains("RESPONSE") && cmd2.contains("RESPONSE")){
+            if (cmd1.contains("RESPONSE") && cmd2.contains("RESPONSE")) {
                 if (cmd1.equals(Response2.get("command"))) {
-                if (cmd1.contains("FILE")) {
-                    JSONObject fD1, fD2;
-                    fD1 = (JSONObject) Response1.get("fileDescriptor");
-                    fD2 = (JSONObject) Response2.get("fileDescriptor");
-                    if (Response1.get("pathName").equals(Response2.get("pathName"))) {
-                        if (fD1.get("md5").equals(fD2.get("md5"))) {
-                            if (fD1.get("lastModified").equals(fD2.get("lastModified"))) {
-                                return fD1.get("fileSize").equals(fD2.get("fileSize"));
+                    if (cmd1.contains("FILE")) {
+                        JSONObject fD1, fD2;
+                        fD1 = (JSONObject) Response1.get("fileDescriptor");
+                        fD2 = (JSONObject) Response2.get("fileDescriptor");
+                        if (Response1.get("pathName").equals(Response2.get("pathName"))) {
+                            if (fD1.get("md5").equals(fD2.get("md5"))) {
+                                if (fD1.get("lastModified").equals(fD2.get("lastModified"))) {
+                                    return fD1.get("fileSize").equals(fD2.get("fileSize"));
+                                } else return false;
                             } else return false;
                         } else return false;
-                    } else return false;
-                } else if (cmd1.contains("DIRECTORY")) {
-                    return Response1.get("pathName").equals(Response2.get("pathName"));
-                }else if(cmd1.contains("HANDSHAKE")){
-                    JSONObject hostport1, hostport2;
-                    hostport1 = (JSONObject) Response1.get("hostport");
-                    hostport2 = (JSONObject) Response1.get("hostport");
-                    if(hostport1.get("host").equals(hostport2.get("host"))){
-                        return hostport1.get("port").equals(hostport2.get("port"));
-                    }else return false;
+                    } else if (cmd1.contains("DIRECTORY")) {
+                        return Response1.get("pathName").equals(Response2.get("pathName"));
+                    } else if (cmd1.contains("HANDSHAKE")) {
+                        JSONObject hostport1, hostport2;
+                        hostport1 = (JSONObject) Response1.get("hostport");
+                        hostport2 = (JSONObject) Response1.get("hostport");
+                        if (hostport1.get("host").equals(hostport2.get("host"))) {
+                            return hostport1.get("port").equals(hostport2.get("port"));
+                        } else return false;
+                    }
                 }
-            }
-            }else return false;
-        }catch(Exception e) {
+            } else return false;
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
 
-}
+    }
 
     public static String INVALID_PROTOCOL(String invalidProtocolMessage) {
         JSONObject obj = new JSONObject();

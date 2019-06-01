@@ -17,7 +17,7 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
     protected boolean ConnectionClosed = false;
     protected ScheduledExecutorService exec = null;
 
-    public void synchronous() {
+    public void synchronize() {
         int synTime = Integer.parseInt(Configuration.getConfigurationValue("syncInterval"));
 
         exec = Executors.newSingleThreadScheduledExecutor();
@@ -66,16 +66,16 @@ public class TCP_peerconnection extends PeerConnection implements Runnable {
     public void run() {
         String line = "";
 
-        synchronous();
+        synchronize();
 
         while (true) {
             try {
                 line = inputStream.readLine();
-                log.info("Peer recieved message: " + line);
+                log.info("Peer received message: " + line);
                 if (line != null) {
                     handleMessage(line);
                 } else {
-                    log.info("The recieved message is null, closing connection.");
+                    log.info("The received message is null, closing connection.");
                     this.CloseConnection();
                     break;
                 }

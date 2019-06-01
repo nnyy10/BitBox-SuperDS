@@ -12,28 +12,29 @@ import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
-public class UDP_peerconnection extends PeerConnection{
+public class UDP_peerconnection extends PeerConnection {
 
-    public class ThreadResponsePair{
+    public class ThreadResponsePair {
         Timer timer;
         InetAddress addr;
         int port;
         String JSON_Response;
+
         public ThreadResponsePair(Timer timer,
                                   InetAddress addr,
                                   int port,
-                                  String JSON_response){
+                                  String JSON_response) {
             this.timer = timer;
-            this.addr= addr;
+            this.addr = addr;
             this.port = port;
             this.JSON_Response = JSON_response;
         }
     }
 
-    public static CopyOnWriteArrayList<ThreadResponsePair> waitingForResponseThreads= new CopyOnWriteArrayList<>();
+    public static CopyOnWriteArrayList<ThreadResponsePair> waitingForResponseThreads = new CopyOnWriteArrayList<>();
 
-    protected  String hostadd=Configuration.getConfigurationValue("advertisedName");
-    protected  int hostPort=Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
+    protected String hostadd = Configuration.getConfigurationValue("advertisedName");
+    protected int hostPort = Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
     private InetAddress address;
     private DatagramPacket dp_send = null;
     private DatagramSocket ds;
@@ -42,31 +43,31 @@ public class UDP_peerconnection extends PeerConnection{
 
     protected static ArrayList<UDP_peerconnection> waitingForHandshakeConnections = new ArrayList<>();
 
-    protected InetAddress getInetAddr(){
+    protected InetAddress getInetAddr() {
         return address;
     }
 
 
     public UDP_peerconnection(DatagramSocket ds, InetAddress address, int port) {
         super();
-        this.ds=ds;
-        this.fileSystemObserver=ServerMain.getInstance();
+        this.ds = ds;
+        this.fileSystemObserver = ServerMain.getInstance();
         this.address = address;
-        this.remoteAddress = this.address.toString().replace("/","");
+        this.remoteAddress = this.address.toString().replace("/", "");
         this.remotePort = port;
     }
 
-    public static void AddPeerToWaitingList(UDP_peerconnection peer){
-        if(peer != null && !UDP_peerconnection.waitingForHandshakeConnections.contains(peer))
+    public static void AddPeerToWaitingList(UDP_peerconnection peer) {
+        if (peer != null && !UDP_peerconnection.waitingForHandshakeConnections.contains(peer))
             UDP_peerconnection.waitingForHandshakeConnections.add(peer);
     }
 
-    public static void RemovePeerToWaitingList(UDP_peerconnection peer){
-        if(peer != null && UDP_peerconnection.waitingForHandshakeConnections.contains(peer))
+    public static void RemovePeerToWaitingList(UDP_peerconnection peer) {
+        if (peer != null && UDP_peerconnection.waitingForHandshakeConnections.contains(peer))
             UDP_peerconnection.waitingForHandshakeConnections.remove(peer);
     }
 
-    public void sendHS(){
+    public void sendHS() {
         String Cmesg = JSON_process.HANDSHAKE_REQUEST(hostadd, hostPort);
         send(Cmesg);
         UDP_peerconnection.AddPeerToWaitingList(this);
@@ -75,13 +76,13 @@ public class UDP_peerconnection extends PeerConnection{
     @Override
     public boolean equals(Object peer) {
         UDP_peerconnection p = (UDP_peerconnection) peer;
-        if(p.getInetAddr().equals(this.getInetAddr()) && p.getPort() == this.getPort())
+        if (p.getInetAddr().equals(this.getInetAddr()) && p.getPort() == this.getPort())
             return true;
         else
             return false;
     }
 
-    public static boolean isResponseMessage(String message){
+    public static boolean isResponseMessage(String message) {
         return message.contains("_RESPONSE");
     }
 
@@ -91,7 +92,7 @@ public class UDP_peerconnection extends PeerConnection{
             byte[] mes = JSON_msg.getBytes("utf-8");
             dp_send = new DatagramPacket(mes, mes.length, address, remotePort);
 
-            if(!isResponseMessage(JSON_msg)) {
+            if (!isResponseMessage(JSON_msg)) {
                 Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
                     int counter = 0;
@@ -106,7 +107,7 @@ public class UDP_peerconnection extends PeerConnection{
                         }
                         counter++;
                         if (counter >= retry) {
-                            if(JSON_msg.equals("HANDSHAKE_REQUEST"))
+                            if (JSON_msg.equals("HANDSHAKE_REQUEST"))
                                 RemovePeerToWaitingList(UDP_peerconnection.this);
                             fileSystemObserver.remove(UDP_peerconnection.this);
                             timer.cancel();

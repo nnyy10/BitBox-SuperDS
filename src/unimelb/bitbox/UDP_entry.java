@@ -25,8 +25,8 @@ public class UDP_entry implements Runnable {
 
     private ServerMain fileSystemObserver = null;
     protected ExecutorService threadPool = Executors.newFixedThreadPool(10);
-    protected int hostPort=Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
-    private String hostAddr=Configuration.getConfigurationValue("advertisedName");
+    protected int hostPort = Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
+    private String hostAddr = Configuration.getConfigurationValue("advertisedName");
 
     protected ScheduledExecutorService exec = null;
 
@@ -37,8 +37,7 @@ public class UDP_entry implements Runnable {
         exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(() -> {
             for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
-                for(PeerConnection peerconnection:ServerMain.getInstance().getlist())
-                {
+                for (PeerConnection peerconnection : ServerMain.getInstance().getlist()) {
                     String syn;
                     syn = ServerMain.getInstance().FileSystemEventToJSON(event);
                     peerconnection.send(syn);
@@ -63,8 +62,8 @@ public class UDP_entry implements Runnable {
         int blocksize = Integer.parseInt(Configuration.getConfigurationValue("blockSize"));
         while (!isStopped()) {
             try {
-                byte[] buffer= new byte[blocksize];
-                dp_receive = new DatagramPacket(buffer,buffer.length);
+                byte[] buffer = new byte[blocksize];
+                dp_receive = new DatagramPacket(buffer, buffer.length);
                 this.ds.receive(dp_receive);
 
                 Runnable r = () -> this.handlePacket(dp_receive);
@@ -85,12 +84,12 @@ public class UDP_entry implements Runnable {
         return this.isStopped;
     }
 
-    private void handlePacket(DatagramPacket datagramPacket){
+    private void handlePacket(DatagramPacket datagramPacket) {
         String message;
         InetAddress receieveAddr;
         int receivePort;
-        byte[] data= new byte[datagramPacket.getLength()];
-        System.arraycopy(datagramPacket.getData(),datagramPacket.getOffset(),data,0,datagramPacket.getLength());
+        byte[] data = new byte[datagramPacket.getLength()];
+        System.arraycopy(datagramPacket.getData(), datagramPacket.getOffset(), data, 0, datagramPacket.getLength());
         receieveAddr = datagramPacket.getAddress();
         receivePort = datagramPacket.getPort();
         message = new String(data);
@@ -118,11 +117,11 @@ public class UDP_entry implements Runnable {
                 }
                 break;
             case "HANDSHAKE_RESPONSE":
-                for(UDP_peerconnection peer: UDP_peerconnection.waitingForHandshakeConnections){
-                    if(peer.getPort() == receivePort && peer.getInetAddr().equals(receieveAddr)){
+                for (UDP_peerconnection peer : UDP_peerconnection.waitingForHandshakeConnections) {
+                    if (peer.getPort() == receivePort && peer.getInetAddr().equals(receieveAddr)) {
                         this.fileSystemObserver.add(peer);
                         UDP_peerconnection.RemovePeerToWaitingList(peer);
-                        new Thread(()-> {
+                        new Thread(() -> {
                             for (FileSystemManager.FileSystemEvent event : this.fileSystemObserver.fileSystemManager.generateSyncEvents()) {
                                 String syn;
                                 syn = ServerMain.getInstance().FileSystemEventToJSON(event);
@@ -134,19 +133,19 @@ public class UDP_entry implements Runnable {
                 }
                 break;
             default:
-                for(PeerConnection peer: ServerMain.getInstance().getlist()){
+                for (PeerConnection peer : ServerMain.getInstance().getlist()) {
                     UDP_peerconnection udpPeerConnection = (UDP_peerconnection) peer;
-                    if(udpPeerConnection.getPort() == receivePort && udpPeerConnection.getInetAddr().equals(receieveAddr)){
-                        if(UDP_peerconnection.isResponseMessage(message)){
+                    if (udpPeerConnection.getPort() == receivePort && udpPeerConnection.getInetAddr().equals(receieveAddr)) {
+                        if (UDP_peerconnection.isResponseMessage(message)) {
                             UDP_peerconnection.ThreadResponsePair foundThreadPair = null;
-                            for(UDP_peerconnection.ThreadResponsePair trp: UDP_peerconnection.waitingForResponseThreads){
-                                if(trp.addr.equals(receieveAddr) && trp.port == receivePort && JSON_process.RESPONSE_EQUALS(trp.JSON_Response, message)){
+                            for (UDP_peerconnection.ThreadResponsePair trp : UDP_peerconnection.waitingForResponseThreads) {
+                                if (trp.addr.equals(receieveAddr) && trp.port == receivePort && JSON_process.RESPONSE_EQUALS(trp.JSON_Response, message)) {
                                     trp.timer.cancel(); // If there is an active timer thread waiting for this response, stop this timer thread
                                     foundThreadPair = trp;
                                     break;
                                 }
                             }
-                            if(foundThreadPair != null)
+                            if (foundThreadPair != null)
                                 UDP_peerconnection.waitingForResponseThreads.remove(foundThreadPair);
                         }
                         udpPeerConnection.handleMessage(message);
@@ -156,6 +155,7 @@ public class UDP_entry implements Runnable {
                 break;
         }
     }
+
     public synchronized void stop() {
         this.isStopped = true;
         this.ds.close();
