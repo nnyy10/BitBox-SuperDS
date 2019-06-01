@@ -68,7 +68,7 @@ public class CmdLineArgs {
     public int getPeerPort(){
         int Port;
         try {
-        String [] str = server.split(":");
+        String [] str = peer.split(":");
         Port = Integer.parseInt(str[1]);
         return Port;
         }

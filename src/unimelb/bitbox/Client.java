@@ -11,16 +11,8 @@ import org.json.simple.parser.ParseException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import unimelb.bitbox.util.CmdLineArgs;
-import unimelb.bitbox.Encryption;
-import unimelb.bitbox.JSON_process;
-import unimelb.bitbox.util.Configuration;
-import unimelb.bitbox.util.FileSystemManager;
-
 import java.io.*;
 import java.net.Socket;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 public class Client {
@@ -79,7 +71,7 @@ public class Client {
             //String encryptedSharedKey = Encryption.encryptSharedKey(identity);
             log.info("try to connect \nhost:" + serverHost + " port: " + serverPort);
             Socket socket = new Socket(serverHost, serverPort);
-            log.info("connected!");
+            log.info("server connected!");
             BufferedReader inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             BufferedWriter outputStream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
 
@@ -95,7 +87,6 @@ public class Client {
                         if(Auth_response != null && obj.get("command").equals("AUTH_RESPONSE")){
 
                             String encryptedSharedKey = (String) obj.get("AES128");
-                            //String encryptedSharedKey = null;
                             String sharedKey = Encryption.decryptSharedKey(encryptedSharedKey, "id_rsa");
                             //System.out.println(sharedKey);
                             String Msg = JSON_process.LIST_PEER_REQUEST();
@@ -107,9 +98,8 @@ public class Client {
                             else{
                                 log.info("send payload successfully");
                                 String payloadMsg = inputStream.readLine();
-                                //System.out.println(payloadMsg);
                                 String list_peer = Encryption.decryptMessage(payloadMsg, sharedKey);
-                                System.out.println(list_peer);
+                                //System.out.println(list_peer);
                                 JSONObject obj1 = (JSONObject) JSparser.parse(list_peer);
                                 if(obj1.get("command").equals("LIST_PEERS_RESPONSE")){
                                     JSONArray peers =(JSONArray) obj1.get("peers");
@@ -117,7 +107,7 @@ public class Client {
                                         for (int i = 0; i < peers.size();i++) {
                                             JSONObject peer = (JSONObject) peers.get(i);
                                             String host = (String) peer.get("host");
-                                            long port = (long) peer.get("port");
+                                            int port = (int) peer.get("port");
                                             System.out.println("peer: "+ host + ":"+ port);
                                         }
                                     }else{
@@ -153,19 +143,20 @@ public class Client {
                             //String encryptedSharedKey = null;
                             String sharedKey = Encryption.decryptSharedKey(encryptedSharedKey, "id_rsa");
                             String Msg = JSON_process.CONNECT_PEER_REQUEST(peerHost,peerPort);
+                            //log.info("sent: "+Msg);
                             //server reads its host and port itself
                             String encryptMSG = Encryption.encryptMessage(Msg, sharedKey);
+                            log.info("try to connect to peer: "+ peerHost+":"+peerPort);
                             if (!send(JSON_process.Payload(encryptMSG), outputStream)){
                                 log.warning("payload send failed");
                                 CloseConnection(socket, outputStream,inputStream);}
                             else {
-                                log.info("payload send successfully");
+                                //log.info("payload send successfully");
                                 String payloadMsg = inputStream.readLine();
                                 String connect_response = Encryption.decryptMessage(payloadMsg, sharedKey);
                                 JSONObject obj1 = (JSONObject) JSparser.parse(connect_response);
-                                //boolean status =(boolean) obj1.get("status");
                                 String msg = (String) obj1.get("message");
-                                log.info(msg);
+                                System.out.println(msg);
                                 CloseConnection(socket, outputStream,inputStream);
                             }
                         }else {
@@ -184,22 +175,28 @@ public class Client {
                         JSONObject obj = (JSONObject) JSparser.parse(Auth_response);
                         if(Auth_response != null && obj.get("command").equals("AUTH_RESPONSE")) {
                             String encryptedSharedKey = (String) obj.get("AES128");
-                            //String encryptedSharedKey = null;
                             String sharedKey = Encryption.decryptSharedKey(encryptedSharedKey, "id_rsa");
                             String Msg = JSON_process.DISCONNECT_PEER_REQUEST(peerHost,peerPort);
+                            log.info("try to disconnect from peer: "+ peerHost+":"+peerPort);
                             //server reads its host and port itself
                             String encryptMSG = Encryption.encryptMessage(Msg, sharedKey);
                             if (!send(JSON_process.Payload(encryptMSG), outputStream)){
                                 log.warning("payload send failed");
                                 CloseConnection(socket, outputStream,inputStream);}
                             else{
-                                log.info("send payload successfully");
+                                //log.info("send payload successfully");
                                 String payloadMsg = inputStream.readLine();
                                 String disconnect_response = Encryption.decryptMessage(payloadMsg, sharedKey);
                                 JSONObject obj1 = (JSONObject) JSparser.parse(disconnect_response);
-                                //boolean status =(boolean) obj1.get("status");
                                 String msg = (String) obj1.get("message");
-                                log.info(msg);
+                                String host = (String) obj1.get("host");
+                                int port = (int) obj1.get("port");
+                                if(host!=null){
+                                    System.out.println(msg+ host+":"+port);
+                                }else{
+                                    System.out.println(msg);
+                                }
+
                                 CloseConnection(socket, outputStream,inputStream);
                             }
 
@@ -209,15 +206,12 @@ public class Client {
                             CloseConnection(socket, outputStream,inputStream);
                         }
                     }
-
-                    //send(JSON_process.DISCONNECT());
                     break;
                 default:
                     log.warning("No such a command");
                     break;
             }
         } catch (CmdLineException e) {
-
             System.err.println(e.getMessage());
 
             //Print the usage to help the user understand the arguments expected
@@ -226,8 +220,6 @@ public class Client {
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
-
-
     }
 
 }
