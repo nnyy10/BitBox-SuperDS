@@ -74,7 +74,7 @@ public class Encryption {
 			 * https://blog.csdn.net/xietansheng/article/details/88389515
 			 */
 			PrivateKey privateKey = getPrivateKey(path);
-			Cipher cipher = Cipher.getInstance("RSA");//java默认"RSA"="RSA/ECB/PKCS1Padding"
+			Cipher cipher = Cipher.getInstance("RSA");//java default: "RSA"="RSA/ECB/PKCS1Padding"
 			cipher.init(Cipher.DECRYPT_MODE, privateKey);
 			String sharedKey = Arrays.toString(cipher.doFinal(Base64.getDecoder().decode(encryptedSharedKey)));
 			return sharedKey;
